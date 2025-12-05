@@ -2,7 +2,7 @@
  *    SPDX-License-Identifier: Apache-2.0
  */
 
-import { arrayOf, shape, number, string, func, any } from 'prop-types';
+import { arrayOf, shape, number, string, func, any, oneOfType } from 'prop-types';
 
 export const blockbyTxIdType = shape({
 	blockhash: string,
@@ -27,7 +27,7 @@ export const blockbyBlockHashType = shape({
 });
 export const blockHashType = shape({
 	blockhash: string,
-	blocknum: number,
+	blocknum: oneOfType([number, string]),
 	channelname: string,
 	creatdt: string,
 	datahash: string,

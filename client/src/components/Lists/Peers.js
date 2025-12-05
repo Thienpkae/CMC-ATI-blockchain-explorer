@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import matchSorter from 'match-sorter';
 import ReactTable from '../Styled/Table';
 import { peerListType } from '../types';
 
@@ -11,104 +10,48 @@ import { peerListType } from '../types';
 const Peers = ({ peerList }) => {
 	const columnHeaders = [
 		{
-			Header: 'Peer Name',
-			accessor: 'server_hostname',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['server_hostname'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+			Header: 'Peer name',
+			accessor: 'server_hostname'
 		},
 		{
-			Header: 'Request Url',
-			accessor: 'requests',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['requests'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+			Header: 'Request URL',
+			accessor: 'requests'
 		},
 		{
-			Header: 'Peer Type',
-			accessor: 'peer_type',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['peer_type'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+			Header: 'Peer type',
+			accessor: 'peer_type'
 		},
 		{
 			Header: 'MSPID',
-			accessor: 'mspid',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['mspid'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+			accessor: 'mspid'
 		},
 		{
-			Header: 'Ledger Height',
-			columns: [
-				{
-					Header: 'High',
-					accessor: 'ledger_height_high',
-					filterMethod: (filter, rows) =>
-						matchSorter(
-							rows,
-							filter.value,
-							{ keys: ['ledger_height_high'] },
-							{ threshold: matchSorter.rankings.SIMPLEMATCH }
-						),
-					filterAll: true
-				},
-				{
-					Header: 'Low',
-					accessor: 'ledger_height_low',
-					filterMethod: (filter, rows) =>
-						matchSorter(
-							rows,
-							filter.value,
-							{ keys: ['ledger_height_low'] },
-							{ threshold: matchSorter.rankings.SIMPLEMATCH }
-						),
-					filterAll: true
-				},
-				{
-					Header: 'Unsigned',
-					id: 'ledger_height_unsigned',
-					accessor: d => d.ledger_height_unsigned.toString(),
-					filterMethod: (filter, rows) =>
-						matchSorter(
-							rows,
-							filter.value,
-							{ keys: ['ledger_height_unsigned'] },
-							{ threshold: matchSorter.rankings.SIMPLEMATCH }
-						),
-					filterAll: true
-				}
-			]
-		}
+			Header: 'High',
+			accessor: 'ledger_height_high'
+		},
+		{
+			Header: 'Low',
+			accessor: 'ledger_height_low'
+		},
+		{
+			Header: 'Unsigned',
+			id: 'ledger_height_unsigned',
+			accessor: d => d.ledger_height_unsigned.toString()
+		},
 	];
 
 	return (
-		<div>
+		<div style={{ marginTop: 16 }}>
 			<ReactTable
+				className="network-table"
 				data={peerList}
 				columns={columnHeaders}
 				defaultPageSize={5}
-				filterable
+				previousText="Previous"
+				nextText="Next"
+				pageText="Page"
+				ofText="of"
+				rowsText="rows"
 				minRows={0}
 				showPagination={peerList.length >= 5}
 			/>
@@ -117,7 +60,7 @@ const Peers = ({ peerList }) => {
 };
 
 Peers.propTypes = {
-	peerList: peerListType.isRequired
+	peerList: peerListType.isRequired,
 };
 
 export default Peers;

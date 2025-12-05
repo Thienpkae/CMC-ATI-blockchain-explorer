@@ -76,6 +76,11 @@ const getTransactionListSearch = transactionList => ({
 	payload: transactionList
 });
 
+const getErroMessage = error => ({
+	type: types.ERROR_MESSAGE,
+	error
+});
+
 export default {
 	getChaincodeList,
 	getChannels,
@@ -91,5 +96,6 @@ export default {
 	getTransactionList,
 	getBlockListSearch,
 	getLoaded,
-	getTransactionListSearch
+	getTransactionListSearch,
+	getErroMessage
 };

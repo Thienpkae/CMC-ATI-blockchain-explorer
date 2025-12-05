@@ -69,7 +69,7 @@ export class NotificationsPanel extends Component {
 					<div className={classes.root}>
 						<List component="nav" className={classes.panel}>
 							<ListItem button>
-								<Typography variant="title" className={classes.panel}>
+								<Typography variant="h6" className={classes.panel}>
 									NO NOTIFICATIONS
 								</Typography>
 							</ListItem>

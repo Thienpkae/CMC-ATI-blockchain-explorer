@@ -14,8 +14,16 @@ const styles = theme => {
 	return {
 		select: {
 			'& .Select-control': {
-				backgroundColor: `${dark ? '#6a628e' : '#e8e8e8'} !important`,
-				color: dark ? '#ffffff !important' : undefined
+				backgroundColor: dark ? '#6a628e' : '#ffffff !important',
+				border: dark ? 'none' : '1px solid #e0e0e0 !important',
+				borderRadius: '8px !important',
+				minHeight: '32px !important',
+				height: '32px !important',
+				boxShadow: 'none !important',
+				'&:hover': {
+					borderColor: dark ? 'none' : '#e0e0e0 !important',
+					boxShadow: 'none !important'
+				}
 			},
 			'& .Select-control .Select-clear-zone': {
 				display: 'none',
@@ -23,26 +31,66 @@ const styles = theme => {
 				margin: 'auto'
 			},
 			'& .Select-control .Select-value': {
-				paddingRight: '22px !important'
+				paddingRight: '22px !important',
+				paddingLeft: '12px !important',
+				lineHeight: '32px !important'
+			},
+			'& .Select-control .Select-value-label': {
+				color: dark ? '#ffffff' : '#424242 !important',
+				fontSize: '14px !important',
+				fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif !important'
+			},
+			'& .Select-control .Select-arrow-zone .Select-arrow': {
+				borderTopColor: dark ? '#ffffff' : '#424242 !important',
+				opacity: 1
+			},
+			'& .Select-control.is-focused': {
+				borderColor: dark ? 'none' : '#e0e0e0 !important',
+				boxShadow: 'none !important'
+			},
+			'& .Select-control.is-open': {
+				borderColor: dark ? 'none' : '#e0e0e0 !important',
+				boxShadow: 'none !important'
 			},
 			'& .Select-menu-outer': {
-				background: dark ? '#5a5379 !important' : undefined,
-				color: dark ? '#ffffff !important' : undefined
+				background: dark ? '#5a5379 !important' : '#ffffff !important',
+				border: dark ? 'none' : '1px solid #e0e0e0 !important',
+				borderRadius: '8px !important',
+				boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1) !important',
+				marginTop: '4px !important',
+				zIndex: 9999
+			},
+			'& .Select-menu': {
+				borderRadius: '8px !important'
 			},
 			'& .Select-option': {
-				background: dark ? '#453e68 !important' : undefined,
-				color: dark ? '#cfcdcd !important' : undefined
+				background: dark ? '#453e68 !important' : '#ffffff !important',
+				color: dark ? '#cfcdcd !important' : '#424242 !important',
+				padding: '8px 12px !important',
+				fontSize: '14px !important',
+				fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif !important',
+				'&:first-child': {
+					borderTopLeftRadius: '8px !important',
+					borderTopRightRadius: '8px !important'
+				},
+				'&:last-child': {
+					borderBottomLeftRadius: '8px !important',
+					borderBottomRightRadius: '8px !important'
+				}
 			},
 			'& .Select-option.is-selected': {
-				background: dark ? '#6a628e !important' : undefined,
-				color: dark ? '#ffffff !important' : undefined
+				background: dark ? '#6a628e !important' : '#f5f5f5 !important',
+				color: dark ? '#ffffff !important' : '#424242 !important'
 			},
 			'& .Select-option.is-focused': {
-				background: dark ? '#5d5291 !important' : undefined,
-				color: dark ? '#ffffff !important' : undefined
+				background: dark ? '#5d5291 !important' : '#f5f5f5 !important',
+				color: dark ? '#ffffff !important' : '#424242 !important'
 			},
-			'& .Select-value-label': {
-				color: dark ? '#000000 !important' : undefined
+			'& .Select-placeholder': {
+				color: dark ? '#cfcdcd' : '#9e9e9e !important',
+				fontSize: '14px !important',
+				fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif !important',
+				paddingLeft: '12px !important'
 			}
 		},
 		filter: {
@@ -53,8 +101,8 @@ const styles = theme => {
         & .Select-option.is-selected,
         & .Select-option.is-focused
       `]: {
-				background: dark ? '#7165ae !important' : undefined,
-				color: dark ? '#ffffff !important' : undefined
+				background: dark ? '#7165ae !important' : '#ffffff !important',
+				color: dark ? '#ffffff !important' : '#424242 !important'
 			}
 		}
 	};

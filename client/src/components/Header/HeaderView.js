@@ -27,9 +27,12 @@ import Websocket from 'react-websocket';
 import Badge from '@material-ui/core/Badge';
 import Dialog from '@material-ui/core/Dialog';
 import Loader from 'react-loader-spinner';
-import Select from '../Styled/Select';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 import NotificationsPanel from '../Panels/NotificationsPanel';
-import Logo from '../../static/images/Explorer_Logo.svg';
+import Logo from '../../static/images/cmc_logo_figma.png';
+import BellIcon from '../../static/images/bell_icon.png';
+import UserIcon from '../../static/images/user_icon.png';
 import AdminPanel from '../Panels/AdminPanel';
 import { chartOperations, chartSelectors } from '../../state/redux/charts';
 import { tableOperations, tableSelectors } from '../../state/redux/tables';
@@ -94,41 +97,117 @@ const styles = theme => {
 	};
 	return {
 		logo: {
-			width: 260,
-			height: 50,
-			'@media (max-width: 1415px) and (min-width: 990px)': {
-				width: 200,
-				height: 40
-			}
+			width: 57,
+			height: 41.87,
+			objectFit: 'contain',
+			marginLeft: 0,
+			marginTop: 0,
+			display: 'block'
 		},
 		navbarHeader: {
-			backgroundColor: '#e8e8e8',
+			backgroundColor: '#FFFFFF',
+			width: '100%',
+			height: 80,
+			minHeight: 80,
+			borderBottom: '0.5px solid #3B82F6',
+			boxShadow: '0px 0px 8.2px 4px rgba(59, 130, 246, 0.1)',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			padding: 0,
+			margin: 0,
+			position: 'relative',
 			...darkNavbar
 		},
+		navbarContainer: {
+			width: '100%',
+			maxWidth: 1400,
+			height: 48,
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			margin: '0 auto',
+			position: 'relative',
+			padding: 0,
+			boxSizing: 'border-box'
+		},
+		logoContainer: {
+			position: 'relative',
+			left: 0,
+			top: 0,
+			display: 'flex',
+			flexDirection: 'column',
+			alignItems: 'flex-start',
+			height: 41.87,
+			alignSelf: 'center'
+		},
+		navLinks: {
+			display: 'flex',
+			alignItems: 'center',
+			gap: 64,
+			margin: 0,
+			padding: 0,
+			listStyle: 'none',
+			position: 'relative',
+			height: 24
+		},
+		navAndControlsContainer: {
+			display: 'flex',
+			alignItems: 'center',
+			gap: 64,
+			position: 'relative',
+			height: 32,
+			marginLeft: 'auto'
+		},
+		controlsGroup: {
+			display: 'flex',
+			alignItems: 'center',
+			gap: 24,
+			position: 'relative',
+			height: 32
+		},
 		tab: {
-			color: dark ? '#242036' : '#000000',
-			fontSize: '1.05rem',
-			fontWeight: 800,
-			height: 50,
-			margin: 10,
+			color: '#757575', // Gray/600
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: '16px',
+			fontWeight: 600,
+			fontStyle: 'normal',
+			lineHeight: '24px', // 150%
+			height: 24,
+			margin: 0,
+			padding: 0,
+			textTransform: 'none',
+			letterSpacing: 0,
+			whiteSpace: 'nowrap',
+			fontFeatureSettings: '"liga" off, "clig" off',
 			'&:hover': {
-				color: dark ? '#242036' : '#000000'
+				color: '#757575',
+				textDecoration: 'none'
 			},
 			'@media (max-width: 1415px) and (min-width: 990px)': {
-				fontSize: '0.85rem'
+				fontSize: '14px'
 			}
 		},
 		activeTab: {
-			color: '#ffffff',
-			backgroundColor: dark ? '#453e68' : '#58c5c2',
-			height: 60,
-			marginTop: 20,
-			padding: 10,
+			color: '#3B82F6',
+			backgroundColor: 'transparent',
+			height: 24,
+			margin: 0,
+			padding: 0,
+			textTransform: 'none',
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: '16px',
+			fontWeight: 600,
+			fontStyle: 'normal',
+			lineHeight: '24px',
+			letterSpacing: 0,
+			whiteSpace: 'nowrap',
 			'&:hover': {
-				color: '#ffffff'
+				color: '#3B82F6',
+				textDecoration: 'none'
 			},
 			'@media (max-width: 1415px) and (min-width: 990px)': {
-				padding: '8%'
+				fontSize: '14px'
 			}
 		},
 		adminButton: {
@@ -149,30 +228,73 @@ const styles = theme => {
 			// 	marginLeft: 0
 			// }
 		},
+		iconContainer: {
+			display: 'flex',
+			alignItems: 'center',
+			gap: 0,
+			margin: 0,
+			padding: 0,
+			position: 'relative',
+			height: 24
+		},
 		bell: {
-			color: dark ? 'rgb(139, 143, 148)' : '#5f6164',
-			fontSize: '18pt',
-			margin: '8px',
-			float: 'none',
+			width: 24,
+			height: 24,
+			margin: 0,
+			padding: 0,
+			cursor: 'pointer',
+			display: 'block',
+			filter: 'brightness(0) saturate(100%) invert(26%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)',
+			opacity: 1,
 			'&:hover': {
-				color: dark ? '#c1d7f0' : '#24272a'
-			},
-			paddingLeft: '12px'
+				opacity: 0.8
+			}
 		},
 		userdropdown: {
-			color: dark ? 'rgb(139, 143, 148)' : '#5f6164',
-			fontSize: '20pt',
-			margin: '8px',
-			float: 'none',
+			width: 24,
+			height: 24,
+			margin: 0,
+			padding: 0,
+			cursor: 'pointer',
+			display: 'block',
+			filter: 'brightness(0) saturate(100%) invert(26%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)',
+			opacity: 1,
 			'&:hover': {
-				color: dark ? '#c1d7f0' : '#24272a'
-			},
-			paddingLeft: '12px'
+				opacity: 0.8
+			}
+		},
+		channelLabel: {
+			color: dark ? '#ffffff' : '#424242',
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: '14px',
+			fontWeight: 400,
+			marginRight: '12px',
+			whiteSpace: 'nowrap',
+			lineHeight: '32px'
+		},
+		channelContainer: {
+			display: 'flex',
+			alignItems: 'center',
+			marginRight: 24
 		},
 		channel: {
-			width: 200,
-			margin: 8,
-			float: 'none',
+			width: 158,
+			minWidth: 158,
+			margin: 0,
+			color: dark ? '#ffffff' : '#424242',
+			backgroundColor: dark ? '#242136' : '#ffffff',
+			borderRadius: 8,
+			height: 32,
+			'& .MuiSelect-select': {
+				paddingTop: 6,
+				paddingBottom: 6,
+				paddingLeft: 12,
+				fontSize: 14,
+				fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif'
+			},
+			'& .MuiOutlinedInput-notchedOutline': {
+				borderColor: dark ? 'transparent' : '#e0e0e0'
+			},
 			'@media (max-width: 1415px) and (min-width: 990px)': {
 				width: '9em'
 			}
@@ -280,18 +402,41 @@ export class HeaderView extends Component {
 		this.interVal = setInterval(() => {
 			this.syncData(currentChannel);
 		}, 60000);
+		this.setNotifications(this.props.blockActivity);
 	}
+
+	setNotifications = blockList => {
+		const notificationsArr = [];
+		if (blockList !== undefined) {
+			const count = this.state.notifyCount;
+			for (let i = 0; i < 3 && blockList && blockList[i]; i += 1) {
+				const block = blockList[i];
+				const notify = {
+					title: `Block ${block.blocknum} `,
+					type: 'block',
+					time: block.createdt,
+					txcount: block.txcount,
+					datahash: block.datahash,
+					blockhash: block.blockhash,
+					channelName: block.channelname
+				};
+				notificationsArr.push(notify);
+			}
+			this.setState({ notifications: notificationsArr, notifyCount: Math.max(count, notificationsArr.length) });
+		}
+	};
 
 	componentWillUnmount() {
 		clearInterval(this.interVal);
 	}
 
-	componentWillReceiveProps(nextProps) {
-		const { currentChannel, getChangeChannel } = this.props;
-		const options = [];
+	componentDidUpdate(prevProps) {
+		const { currentChannel, getChangeChannel, channels, blockActivity } = this.props;
 		let selectedValue = {};
-		if (nextProps.channels.length > 0) {
-			nextProps.channels.forEach(element => {
+
+		if (channels !== prevProps.channels && channels.length > 0) {
+			const options = [];
+			channels.forEach(element => {
 				options.push({
 					value: element.channel_genesis_hash,
 					label: (
@@ -307,8 +452,8 @@ export class HeaderView extends Component {
 					)
 				});
 				if (
-					nextProps.currentChannel == null ||
-					nextProps.currentChannel === undefined
+					currentChannel == null ||
+					currentChannel === undefined
 				) {
 					if (element.channel_genesis_hash != null) {
 						selectedValue = {
@@ -316,30 +461,36 @@ export class HeaderView extends Component {
 							label: element.channelname
 						};
 					}
-				} else if (element.channel_genesis_hash === nextProps.currentChannel) {
+				} else if (element.channel_genesis_hash === currentChannel) {
 					selectedValue = {
 						value: element.channel_genesis_hash,
 						label: element.channelname
 					};
 				}
 			});
+
+			this.setState({
+				channels: options,
+				isLoading: false,
+				selectedChannel: selectedValue
+			});
 		}
 
 		if (
-			nextProps.currentChannel === null ||
-			nextProps.currentChannel === undefined
+			(currentChannel === null || currentChannel === undefined) &&
+			selectedValue.value
 		) {
 			getChangeChannel(selectedValue.value);
 		}
 
-		this.setState({
-			currentChannel: currentChannel,
-			channels: options,
-			isLoading: false,
-			selectedChannel: selectedValue
-		});
-		if (nextProps.currentChannel !== currentChannel) {
-			this.syncData(nextProps.currentChannel);
+		if (currentChannel !== prevProps.currentChannel) {
+			this.setState({
+				currentChannel: currentChannel
+			});
+			this.syncData(currentChannel);
+		}
+		if (blockActivity !== prevProps.blockActivity) {
+			this.setNotifications(blockActivity);
 		}
 	}
 
@@ -397,16 +548,16 @@ export class HeaderView extends Component {
 	};
 
 	/**enrollOpen = () => {
-    this.setState(() => ({ enrollOpen: true }));
+	this.setState(() => ({ enrollOpen: true }));
   };
 
   enrollClose = () => {
-    this.setState(() => ({ enrollOpen: false }));
+	this.setState(() => ({ enrollOpen: false }));
   };
 
   onEnroll = user => {
-    alert(JSON.stringify(user, null, 2));
-    this.enrollClose();
+	alert(JSON.stringify(user, null, 2));
+	this.enrollClose();
   }; */
 
 	handleDrawOpen = drawer => {
@@ -528,12 +679,12 @@ export class HeaderView extends Component {
 			dropdownOpen
 		} = this.state;
 		const links = [
-			{ to: '/', label: 'DASHBOARD', exact: true },
-			{ to: '/network', label: 'NETWORK' },
-			{ to: '/blocks', label: 'BLOCKS' },
-			{ to: '/transactions', label: 'TRANSACTIONS' },
-			{ to: '/chaincodes', label: 'CHAINCODES' },
-			{ to: '/channels', label: 'CHANNELS' }
+			{ to: '/', label: 'Dashboard', exact: true },
+			{ to: '/network', label: 'Network' },
+			{ to: '/blocks', label: 'Blocks' },
+			{ to: '/transactions', label: 'Transactions' },
+			{ to: '/chaincodes', label: 'Chaincodes' },
+			{ to: '/channels', label: 'Channels' }
 		];
 
 		return (
@@ -548,95 +699,112 @@ export class HeaderView extends Component {
 				<Router>
 					<div>
 						<Navbar className={classes.navbarHeader} expand="lg" fixed="top">
-							<NavbarBrand href="/">
-								<img src={Logo} className={classes.logo} alt="Hyperledger Logo" />
-							</NavbarBrand>
-							<NavbarToggler onClick={this.toggle}>
-								<FontAwesome name="bars" className={classes.toggleIcon} />
-							</NavbarToggler>
-							<Collapse isOpen={this.state.isOpen} navbar>
-								<Nav
-									className="ml-auto navbar-left"
-									navbar
-									onMouseLeave={this.closeToggle}
-								>
-									{links.map(({ to, label, ...props }) => (
-										<NavItem key={to}>
-											<NavLink
-												to={to}
-												className={classes.tab}
-												activeClassName={classes.activeTab}
-												onClick={this.toggle}
-												{...props}
+							<div style={{ width: '100%', maxWidth: 1920, margin: '0 auto', position: 'relative', height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+								<div className={classes.navbarContainer} style={{ width: '100%', maxWidth: 1400, position: 'relative' }}>
+									<div className={classes.logoContainer}>
+										<img src={Logo} className={classes.logo} alt="CMC ATI Logo" />
+									</div>
+									<NavbarToggler onClick={this.toggle}>
+										<FontAwesome name="bars" className={classes.toggleIcon} />
+									</NavbarToggler>
+									<Collapse isOpen={this.state.isOpen} navbar style={{ marginLeft: 'auto' }}>
+										<div className={classes.navAndControlsContainer}>
+											<Nav
+												className={classes.navLinks}
+												navbar
+												onMouseLeave={this.closeToggle}
 											>
-												{label}
-											</NavLink>
-										</NavItem>
-									))}
-									<Form inline>
-										<Select
-											className={classes.channel}
-											placeholder="Select Channel..."
-											required
-											name="form-field-name"
-											isLoading={isLoading}
-											value={selectedChannel}
-											onChange={this.handleChange}
-											onFocus={this.reloadChannels.bind(this)}
-											options={stateChannels}
-										/>
-									</Form>
-									<Form inline>
-										<div className={classes.adminButton}>
-											<FontAwesome
-												name="bell"
-												data-command="bell"
-												className={classes.bell}
-												onClick={() => this.handleDrawOpen('notifyDrawer')}
-											/>
-											<Badge badgeContent={notifyCount} color="primary" />
-										</div>
-									</Form>
-									<Form inline>
-										<Dropdown
-											isOpen={dropdownOpen}
-											toggle={() => this.setState({ dropdownOpen: !dropdownOpen })}
-										>
-											<DropdownToggle nav>
-												<FontAwesome name="user" className={classes.userdropdown} />
-											</DropdownToggle>
-											<DropdownMenu>
-												<DropdownItem>
-													<div className={classes.adminButton}>
-														<FontAwesome name="sun-o" className={classes.sunIcon} />
-														<Switch
-															className={classes.themeSwitch}
-															onChange={() => this.handleThemeChange(mode)}
-															checked={dark}
-														/>
-														<FontAwesome name="moon-o" className={classes.moonIcon} />
-													</div>
-												</DropdownItem>
-												<DropdownItem>
-													<div
-														className={classes.userIcon}
-														onClick={() => this.registerOpen()}
+												{links.map(({ to, label, ...props }) => (
+													<NavItem key={to} style={{ margin: 0 }}>
+														<NavLink
+															to={to}
+															className={classes.tab}
+															activeClassName={classes.activeTab}
+															onClick={this.toggle}
+															{...props}
+														>
+															{label}
+														</NavLink>
+													</NavItem>
+												))}
+											</Nav>
+											<div className={classes.controlsGroup}>
+												<Form inline style={{ margin: 0 }}>
+													<Select
+														className={classes.channel}
+														value={selectedChannel.value || ''}
+														onChange={e => {
+															const val = e.target.value;
+															const selected = stateChannels.find(c => c.value === val);
+															this.handleChange(selected);
+														}}
+														onOpen={this.reloadChannels.bind(this)}
+														displayEmpty
+														variant="outlined"
 													>
-														<FontAwesome name="user-plus" />
-														User management
-													</div>
-												</DropdownItem>
-												<DropdownItem divider />
-												<DropdownItem>
-													<div className={classes.logoutIcon} onClick={() => this.logout()}>
-														<FontAwesome name="sign-out" /> Sign out
-													</div>
-												</DropdownItem>
-											</DropdownMenu>
-										</Dropdown>
-									</Form>
-								</Nav>
-							</Collapse>
+														{stateChannels.map(c => (
+															<MenuItem key={c.value} value={c.value}>
+																{c.label}
+															</MenuItem>
+														))}
+													</Select>
+												</Form>
+												<div style={{ position: 'relative' }}>
+													<img
+														src={BellIcon}
+														className={classes.bell}
+														alt="Notifications"
+														onClick={() => this.handleDrawOpen('notifyDrawer')}
+													/>
+													{notifyCount > 0 && (
+														<Badge badgeContent={notifyCount} color="primary" style={{ position: 'absolute', top: -8, right: -8 }} />
+													)}
+												</div>
+												<Dropdown
+													isOpen={dropdownOpen}
+													toggle={() => this.setState({ dropdownOpen: !dropdownOpen })}
+												>
+													<DropdownToggle nav style={{ padding: 0 }}>
+														<img
+															src={UserIcon}
+															className={classes.userdropdown}
+															alt="User"
+														/>
+													</DropdownToggle>
+													<DropdownMenu>
+														<DropdownItem>
+															<div className={classes.adminButton}>
+																<FontAwesome name="sun-o" className={classes.sunIcon} />
+																<Switch
+																	className={classes.themeSwitch}
+																	onChange={() => this.handleThemeChange(mode)}
+																	checked={dark}
+																/>
+																<FontAwesome name="moon-o" className={classes.moonIcon} />
+															</div>
+														</DropdownItem>
+														<DropdownItem>
+															<div
+																className={classes.userIcon}
+																onClick={() => this.registerOpen()}
+															>
+																<FontAwesome name="user-plus" />
+																User management
+															</div>
+														</DropdownItem>
+														<DropdownItem divider />
+														<DropdownItem>
+															<div className={classes.logoutIcon} onClick={() => this.logout()}>
+																<FontAwesome name="sign-out" /> Sign out
+															</div>
+														</DropdownItem>
+													</DropdownMenu>
+												</Dropdown>
+											</div>
+										</div>
+									</Collapse>
+								</div>
+							</div>
 						</Navbar>
 						<Drawer
 							anchor="right"

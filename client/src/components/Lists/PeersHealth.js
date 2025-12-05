@@ -13,26 +13,26 @@ import styled from "@emotion/styled";
 
 const styles = theme => ({
 	table: {
-	  height: 335,
-	  overflowY: "scroll"
+		height: 335,
+		overflowY: "scroll"
 	},
 	center: {
-	  textAlign: "left"
+		textAlign: "left"
 	},
 	circle: {
-	  width: "20px",
-	  height: "20px",
-	  display: "inline-block",
-	  borderRadius: "50%"
+		width: "20px",
+		height: "20px",
+		display: "inline-block",
+		borderRadius: "50%"
 	},
 	down: {
-	  backgroundColor: "red"
+		backgroundColor: "red"
 	},
 	up: {
-	  backgroundColor: "green"
+		backgroundColor: "green"
 	}
-  
-  });
+
+});
 
 const Status = styled.span`
   &.blink {
@@ -59,34 +59,33 @@ const Status = styled.span`
 const PeersHealth = ({ peerStatus, classes }) => {
 	const statusTooltip = title => {
 		return (
-		  <Tooltip
-			title={
-			  title === "DOWN" ? "Offline" : title === "UP" ? "Online" : "Fetching Status"
-			}
-			placement="top"
-		  >
-			<Status
-			  className={`${classes.circle} ${
-				title === "DOWN" ? classes.down : classes.up
-			  } ${!title && "blink"}`}
-			/>
-		  </Tooltip>
+			<Tooltip
+				title={
+					title === "DOWN" ? "Offline" : title === "UP" ? "Online" : "Fetching Status"
+				}
+				placement="top"
+			>
+				<Status
+					className={`${classes.circle} ${title === "DOWN" ? classes.down : classes.up
+						} ${!title && "blink"}`}
+				/>
+			</Tooltip>
 		);
-	  };
+	};
 	const columnHeaders = [
 		{
 			Header: 'Peer Name',
 			accessor: 'server_hostname',
 			filterAll: false,
 			className: classes.center
-		}, 
+		},
 		{
 			Header: "Status",
 			accessor: "status",
 			filterAll: false,
 			className: classes.center,
 			Cell: row => statusTooltip(row.value)
-		  }
+		}
 	];
 	return (
 		<div>

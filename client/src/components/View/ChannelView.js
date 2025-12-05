@@ -11,7 +11,11 @@ export const ChannelView = ({
 	currentChannel,
 	getChannelPeerData,
 	channels,
-	channelPeerData
+	channelPeerData,
+	getBlockSearch,
+	blockSearch,
+	getBlockHash,
+	blockHashList
 }) => (
 	<View>
 		<Channels
@@ -19,6 +23,10 @@ export const ChannelView = ({
 			channels={channels}
 			channelPeerData={channelPeerData}
 			getChannelPeerData={getChannelPeerData}
+			getBlockSearch={getBlockSearch}
+			blockSearch={blockSearch}
+			getBlockHash={getBlockHash}
+			blockHashList={blockHashList}
 		/>
 	</View>
 );

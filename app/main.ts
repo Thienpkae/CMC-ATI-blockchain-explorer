@@ -88,11 +88,11 @@ async function startExplorer() {
 		helmet.contentSecurityPolicy({
 			directives: {
 				defaultSrc: ["'self'"],
-				styleSrc: ["'self'", "'unsafe-inline'"],
+				styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
 				scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
 				objectSrc: ["'self'"],
 				frameSrc: ["'self'"],
-				fontSrc: ["'self'"],
+				fontSrc: ["'self'", 'https://fonts.gstatic.com'],
 				imgSrc: ["'self' data: https:; "]
 			}
 		})
@@ -144,7 +144,7 @@ server.on('connection', connection => {
  * i.e. wait for existing connections
  */
 
-const shutDown = function(exitCode) {
+const shutDown = function (exitCode) {
 	logger.info('Received kill signal, shutting down gracefully');
 	server.close(() => {
 		explorer.close();

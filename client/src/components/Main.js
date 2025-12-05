@@ -119,7 +119,8 @@ export const Main = props => {
 		transactionListSearchPageParam,
 		getTxnList,
 		getBlockHash,
-		getBlockByTxnId
+		getBlockByTxnId,
+		getBlockSearch
 	} = props;
 
 	const blocksViewProps = {
@@ -140,7 +141,9 @@ export const Main = props => {
 		transactionByOrg,
 		currentChannel,
 		getTransaction,
-		transaction
+		transaction,
+		getBlockSearch,
+		blockSearch
 	};
 	const chaincodeViewProps = {
 		chaincodeList,
@@ -153,13 +156,21 @@ export const Main = props => {
 		channels,
 		getChannelPeerData,
 		channelPeerData,
-		currentChannel
+		currentChannel,
+		getBlockSearch,
+		blockSearch,
+		getBlockHash,
+		blockHashList
 	};
 	const channelViewProps = {
 		channels,
 		getChannelPeerData,
 		channelPeerData,
-		currentChannel
+		currentChannel,
+		getBlockSearch,
+		blockSearch,
+		getBlockHash,
+		blockHashList
 	};
 	const dashboardViewProps = {
 		blockListSearch,
@@ -202,7 +213,7 @@ export const Main = props => {
 			let routePath = '/' + queryParams.get('tab');
 			history.replace(routePath);
 		}
-	}, []);
+	}, [props]);
 
 	function removeTransactionId() {
 		let windowUrl = window.location.search;
@@ -323,9 +334,7 @@ const connectedComponent = connect(
 		blockRangeLoaded: blockRangeLoadedSelector(state),
 		transactionListSearch: transactionListSearchSelector(state),
 		transactionListTotalPages: transactionListTotalPagesSelector(state),
-		transactionListSearchTotalPages: transactionListSearchTotalPagesSelector(
-			state
-		),
+		transactionListSearchTotalPages: transactionListSearchTotalPagesSelector(state),
 		transactionListSearchPageParam: transactionListSearchPageParamSelector(state),
 		transactionListSearchQuery: transactionListSearchQuerySelector(state),
 		blockActivity: blockActivitySelector(state)
@@ -334,6 +343,7 @@ const connectedComponent = connect(
 		getTransaction: tableOperations.transaction,
 		getBlockListSearch: tableOperations.blockListSearch,
 		getBlockRangeSearch: tableOperations.blockRangeSearch,
+		getBlockSearch: tableOperations.blockSearch,
 		getTransactionListSearch: tableOperations.transactionListSearch,
 		getTxnList: tableOperations.txnList,
 		getBlockHash: tableOperations.blockHashList,

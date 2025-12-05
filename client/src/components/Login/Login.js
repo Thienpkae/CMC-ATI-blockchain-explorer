@@ -101,18 +101,7 @@ export class Login extends Component {
 		};
 	}
 
-	componentWillReceiveProps(nextProps) {
-		const { networks = [] } = nextProps;
-		this.setState(() => ({
-			networks,
-			network: {
-				error: null,
-				value: networks[0].name || '',
-				id: networks[0].id
-			},
-			authEnabled: networks[0].authEnabled
-		}));
-	}
+
 
 	handleChange = event => {
 		const { target } = event;
@@ -165,7 +154,21 @@ export class Login extends Component {
 		});
 	};
 
-	async componentDidUpdate() {
+	async componentDidUpdate(prevProps) {
+		const { networks: prevNetworks } = prevProps;
+		const { networks: propNetworks } = this.props;
+
+		if (propNetworks !== prevNetworks) {
+			this.setState(() => ({
+				networks: propNetworks,
+				network: {
+					error: null,
+					value: propNetworks[0]?.name || '',
+					id: propNetworks[0]?.id
+				},
+				authEnabled: propNetworks[0]?.authEnabled
+			}));
+		}
 		const { networks, autoLoginAttempted } = this.state;
 
 		/*

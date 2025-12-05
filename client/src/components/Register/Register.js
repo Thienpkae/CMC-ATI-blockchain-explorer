@@ -112,12 +112,14 @@ export class Register extends Component {
 		};
 	}
 
-	componentWillReceiveProps(nextProps) {
-		const { registered = [], error } = nextProps;
-		this.setState(() => ({
-			registered,
-			error
-		}));
+	componentDidUpdate(prevProps) {
+		const { registered, error } = this.props;
+		if (registered !== prevProps.registered || error !== prevProps.error) {
+			this.setState(() => ({
+				registered,
+				error
+			}));
+		}
 	}
 
 	handleChange = event => {

@@ -1,10 +1,21 @@
 /**
  *    SPDX-License-Identifier: Apache-2.0
  */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+	/* Figma Design Colors */
+	--figma-primary-blue: #3B82F6;
+	--figma-gray-text: #757575;
+	--figma-white: #FFFFFF;
+	--figma-border-blue: rgba(59, 130, 246, 0.1);
+	--figma-shadow-blue: rgba(59, 130, 246, 0.1);
+}
+
 body {
 	line-height: normal;
 	font-size: 16px;
-	font-family: 'Roboto Condensed', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-family: 'Inter', 'Roboto', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased !important;
 }
 #root > div > div:nth-child(1) > nav > a {
@@ -16,7 +27,8 @@ body {
 #root > div > div:nth-child(1) > nav {
 	padding-top: 0px;
 	padding-bottom: 0px;
-	height: 75px;
+	height: 80px;
+	min-height: 80px;
 }
 .ml-auto li {
 	height: 50px;

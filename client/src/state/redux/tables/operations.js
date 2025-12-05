@@ -7,8 +7,7 @@ import { get } from '../../../services/request';
 /* istanbul ignore next */
 const blockListSearch = (channel, query, pageParams) => dispatch =>
 	get(
-		`/api/blockAndTxList/${channel}/0?${
-			query ? query : ''
+		`/api/blockAndTxList/${channel}/0?${query ? query : ''
 		}&page=${pageParams?.page || 1}&size=${pageParams?.size || 10}`
 	)
 		.then(resp => {
@@ -205,7 +204,7 @@ const transaction = (channel, transactionId) => dispatch =>
 const transactionListSearch = (channel, query, pageParams) => dispatch =>
 	get(
 		`/api/txList/${channel}/0/0?${query ? query : ''}&page=${pageParams?.page ||
-			1}&size=${pageParams?.size || 10}`
+		1}&size=${pageParams?.size || 10}`
 	)
 		.then(resp => {
 			let params = { page: pageParams?.page || 1, size: pageParams?.size || 10 };

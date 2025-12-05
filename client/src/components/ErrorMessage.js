@@ -13,10 +13,16 @@ const styles = {
 	}
 };
 
-export const ErrorMessage = ({ message, classes }) => (
-	<div className={classes.error}>
-		<Alert color="danger">{message}</Alert>
-	</div>
-);
+export const ErrorMessage = ({ message, classes }) => {
+	let displayMessage = message;
+	if (typeof message === 'object' && message !== null) {
+		displayMessage = message.error || JSON.stringify(message);
+	}
+	return (
+		<div className={classes.error}>
+			<Alert color="danger">{displayMessage}</Alert>
+		</div>
+	);
+};
 
 export default withStyles(styles)(ErrorMessage);

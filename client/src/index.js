@@ -2,6 +2,9 @@
  *    SPDX-License-Identifier: Apache-2.0
  */
 
+// Import suppress warnings first to catch all warnings before React loads
+import './suppressWarnings';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';

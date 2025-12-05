@@ -21,6 +21,7 @@ const BLOCK_RANGE_SEARCH = 'BLOCK_RANGE_SEARCH';
 const BLOCK_RANGE_LOADED = `${namespaces}/BLOCK_RANGE_LOADED`;
 const TRANSACTION_LIST_SEARCH = `${namespaces}/TRANSACTION_LIST_SEARCH`;
 const ORGS = `${namespaces}/ORGS`;
+const ERROR_MESSAGE = `${namespaces}/ERROR_MESSAGE`;
 
 export default {
 	BLOCK_LIST,
@@ -39,5 +40,6 @@ export default {
 	BLOCK_RANGE_SEARCH,
 	BLOCK_RANGE_LOADED,
 	TRANSACTION_LIST_SEARCH,
-	ORGS
+	ORGS,
+	ERROR_MESSAGE
 };

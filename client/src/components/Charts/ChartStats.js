@@ -6,10 +6,12 @@ import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import moment from 'moment-timezone';
-import { TabContent, TabPane, Nav, NavItem, NavLink } from 'reactstrap';
-import classnames from 'classnames';
+import MenuItem from '@material-ui/core/MenuItem';
+import Menu from '@material-ui/core/Menu';
+import ButtonBase from '@material-ui/core/ButtonBase';
 import { chartSelectors, chartOperations } from '../../state/redux/charts';
 import TimeChart from './TimeChart';
+import IconChartHeader from '../../static/images/icon_chart_header.svg';
 import {
 	blockPerHourType,
 	blockPerMinType,
@@ -35,9 +37,76 @@ const styles = theme => {
 	const { type } = theme.palette;
 	const dark = type === 'dark';
 	return {
-		chart: {
-			color: dark ? '#ffffff' : undefined,
-			backgroundColor: dark ? '#453e68' : undefined
+		chartContainer: {
+			height: 325,
+			minHeight: 325,
+			margin: 0,
+			padding: '16px 24px',
+			borderRadius: 8,
+			border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : '#E5E7EB'}`,
+			backgroundColor: dark ? '#2b2940' : '#FFF',
+			boxShadow: dark
+				? '0 12px 24px rgba(0,0,0,0.25)'
+				: '0px 12px 24px rgba(59, 130, 246, 0.08)',
+			display: 'flex',
+			flexDirection: 'column',
+			justifyContent: 'space-between',
+			alignItems: 'flex-start',
+			flex: '0 0 calc(50% - 6px)',
+			maxWidth: 'calc(50% - 6px)',
+			minWidth: 0,
+			boxSizing: 'border-box !important',
+			'@media (max-width: 1200px)': {
+				flex: '0 0 100%',
+				maxWidth: '100%'
+			}
+		},
+		chartHeader: {
+			width: '100%',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			fontStyle: 'normal',
+			fontWeight: 600,
+			fontSize: 16,
+			gap: 16,
+			marginBottom: 12
+		},
+		headerMeta: {
+			display: 'flex',
+			alignItems: 'center',
+			gap: 12
+		},
+		headerIcon: {
+			width: 24,
+			height: 24
+		},
+		headerTitleButton: {
+			display: 'inline-flex',
+			alignItems: 'center',
+			padding: '4px 0',
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: 16,
+			fontWeight: 600,
+			lineHeight: '28px',
+			color: dark ? '#ffffff' : '#212121'
+		},
+		menuPaper: {
+			borderRadius: 8,
+			border: `1px solid ${dark ? 'rgba(255,255,255,0.1)' : '#E5E7EB'}`
+		},
+		menuItem: {
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: 14,
+			fontWeight: 500
+		},
+		chartBody: {
+			flex: 1,
+			width: '100%',
+			alignSelf: 'stretch',
+			marginTop: 12,
+			display: 'flex',
+			minHeight: 0
 		}
 	};
 };
@@ -46,7 +115,8 @@ export class ChartStats extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			activeTab: '1'
+			activeTab: 'blocks_hour',
+			menuAnchor: null
 		};
 	}
 
@@ -85,7 +155,7 @@ export class ChartStats extends Component {
 			return {
 				datetime: moment(data.datetime)
 					.tz(moment.tz.guess())
-					.format('h:mm A'),
+					.format('HH:mm'),
 				count: data.count
 			};
 		});
@@ -104,8 +174,16 @@ export class ChartStats extends Component {
 		});
 	};
 
+	handleMenuOpen = event => {
+		this.setState({ menuAnchor: event.currentTarget });
+	};
+
+	handleMenuClose = () => {
+		this.setState({ menuAnchor: null });
+	};
+
 	render() {
-		const { activeTab } = this.state;
+		const { activeTab, menuAnchor } = this.state;
 		const {
 			blockPerHour,
 			blockPerMin,
@@ -114,72 +192,53 @@ export class ChartStats extends Component {
 			classes
 		} = this.props;
 
+		const tabs = [
+			{ id: 'blocks_hour', label: 'Blocks / Hour', data: blockPerHour },
+			{ id: 'blocks_min', label: 'Blocks / Min', data: blockPerMin },
+			{ id: 'tx_hour', label: 'Transactions / Hour', data: transactionPerHour },
+			{ id: 'tx_min', label: 'Transactions / Min', data: transactionPerMin }
+		];
+		const activeTabConfig = tabs.find(tab => tab.id === activeTab) || tabs[0];
+
 		return (
-			<div className={classes.chart}>
-				<Nav tabs>
-					<NavItem>
-						<NavLink
-							className={classnames({
-								active: activeTab === '1'
-							})}
-							onClick={() => {
-								this.toggle('1');
-							}}
+			<div className={classes.chartContainer}>
+				<div className={classes.chartHeader}>
+					<div className={classes.headerMeta}>
+						<img src={IconChartHeader} alt="Chart icon" className={classes.headerIcon} />
+						<ButtonBase
+							onClick={this.handleMenuOpen}
+							className={classes.headerTitleButton}
 						>
-							BLOCKS / HOUR
-						</NavLink>
-					</NavItem>
-					<NavItem>
-						<NavLink
-							className={classnames({
-								active: activeTab === '2'
-							})}
-							onClick={() => {
-								this.toggle('2');
-							}}
-						>
-							BLOCKS / MIN
-						</NavLink>
-					</NavItem>
-					<NavItem>
-						<NavLink
-							className={classnames({
-								active: activeTab === '3'
-							})}
-							onClick={() => {
-								this.toggle('3');
-							}}
-						>
-							TX / HOUR
-						</NavLink>
-					</NavItem>
-					<NavItem>
-						<NavLink
-							className={classnames({
-								active: activeTab === '4'
-							})}
-							onClick={() => {
-								this.toggle('4');
-							}}
-						>
-							TX / MIN
-						</NavLink>
-					</NavItem>
-				</Nav>
-				<TabContent activeTab={activeTab}>
-					<TabPane tabId="1">
-						<TimeChart chartData={this.timeDataSetup(blockPerHour)} />
-					</TabPane>
-					<TabPane tabId="2">
-						<TimeChart chartData={this.timeDataSetup(blockPerMin)} />
-					</TabPane>
-					<TabPane tabId="3">
-						<TimeChart chartData={this.timeDataSetup(transactionPerHour)} />
-					</TabPane>
-					<TabPane tabId="4">
-						<TimeChart chartData={this.timeDataSetup(transactionPerMin)} />
-					</TabPane>
-				</TabContent>
+							<span>{activeTabConfig.label}</span>
+						</ButtonBase>
+					</div>
+					<Menu
+						anchorEl={menuAnchor}
+						open={Boolean(menuAnchor)}
+						onClose={this.handleMenuClose}
+						getContentAnchorEl={null}
+						anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+						transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+						classes={{ paper: classes.menuPaper }}
+					>
+						{tabs.map(tab => (
+							<MenuItem
+								key={tab.id}
+								selected={tab.id === activeTab}
+								onClick={() => {
+									this.toggle(tab.id);
+									this.handleMenuClose();
+								}}
+								className={classes.menuItem}
+							>
+								{tab.label}
+							</MenuItem>
+						))}
+					</Menu>
+				</div>
+				<div className={classes.chartBody}>
+					<TimeChart chartData={this.timeDataSetup(activeTabConfig.data)} />
+				</div>
 			</div>
 		);
 	}

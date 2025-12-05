@@ -7,93 +7,192 @@ import { txnListType } from '../types';
 import { blockHashTypee } from '../types';
 import { blockTxnIdType } from '../types';
 import {
-	IconButton,
 	TextField,
-	Select,
-	MenuItem,
-	InputAdornment,
 	makeStyles
 } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import { withRouter } from 'react-router-dom';
 import Dialog from '@material-ui/core/Dialog';
-import TransactionView from '../View/TransactionView';
-import BlockView from '../View/BlockView';
-import BlockHashView from '../View/BlockHashView';
-import BlockTxIdView from '../View/BlockTxIdView';
+import TransactionDetails from '../View/TransactionDetails';
+import BlockDetails from '../View/BlockDetails';
 
 const useStyles = makeStyles(theme => ({
-	searchField: {
+	searchContainer: {
+		width: '100%',
+		maxWidth: 1400,
+		height: 48,
+		border: '1px solid #EDEDED',
+		borderRadius: 8,
+		padding: '12px 16px',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		backgroundColor: 'transparent',
+		margin: '0 auto',
+		boxSizing: 'border-box',
+		'@media (max-width: 1400px)': {
+			width: '100%',
+			maxWidth: '100%'
+		},
+		'@media (max-width: 768px)': {
+			height: 'auto',
+			padding: '10px 12px'
+		}
+	},
+	searchLeft: {
+		display: 'flex',
+		alignItems: 'center',
+		gap: 8,
+		flex: 1,
+		minWidth: 0
+	},
+	searchIcon: {
+		width: 24,
+		height: 24,
+		color: '#757575', // Gray/600
+		cursor: 'pointer',
+		flexShrink: 0
+	},
+	searchInput: {
+		flex: 1,
+		minWidth: 0,
+		'& .MuiInputBase-root': {
+			border: 'none',
+			'&:before': {
+				display: 'none'
+			},
+			'&:after': {
+				display: 'none'
+			},
+			'&:hover:before': {
+				display: 'none'
+			}
+		},
+		'& .MuiInputBase-input': {
+			padding: 0,
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: 14,
+			lineHeight: '20px',
+			color: '#757575', // Gray/600
+			height: 20,
+			'&::placeholder': {
+				color: '#757575', // Gray/600
+				opacity: 1,
+				fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+				fontSize: 14,
+				lineHeight: '20px'
+			}
+		}
+	},
+	searchRight: {
+		width: 27,
+		height: 24,
+		border: '1px solid #E0E0E0', // Gray/300 - rgb(224, 224, 224)
+		borderRadius: 4,
+		padding: '2px 10px',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		'& .MuiOutlinedInput-input': {
-			padding: '16px 8px'
-		}
+		backgroundColor: 'transparent',
+		boxSizing: 'border-box',
+		flexShrink: 0
 	},
-	searchInput: {
-		marginRight: theme.spacing(0),
-		'& > div': {
-			paddingRight: '24px !important',
-			borderRadius: '25px'
-		}
+	slashText: {
+		fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+		fontSize: 12,
+		lineHeight: '24px',
+		color: '#212121', // Gray/900
+		fontWeight: 400,
+		margin: 0,
+		padding: 0,
+		height: 24,
+		display: 'flex',
+		alignItems: 'center'
 	},
-	selectInput: {
-		'& .MuiSelect-select:focus': {
-			backgroundColor: 'transparent'
-		},
-		borderRight: '1px solid rgba(0,0,0,0.2)'
-	},
-	iconButton: {
-		height: 40,
-		width: 40,
-		color: '#21295c',
-		backgroundColor: '#b9d6e1',
-		borderRadius: 15
+	errorText: {
+		color: '#d32f2f',
+		fontSize: 12,
+		marginTop: 4,
+		fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif'
 	}
 }));
 
 const SearchByQuery = props => {
-	let { txnList } = props;
-	let { blockHashList } = props;
-	let { blockTxnIdList } = props;
-	let { blockSearch } = props;
+
 	const classes = useStyles();
-	const options = ['Txn Hash', 'Block No', 'Block Hash', 'Block By Txn ID'];
+
 	const [search, setSearch] = useState('');
 	const [selectedOp, setSelectedOp] = useState('Txn Hash');
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [error, setError] = useState('');
-	const [searchClick, setSearchClick] = useState(false);
+	const [searchAttempt, setSearchAttempt] = useState(0); // 0: Idle, 1: Txn, 2: BlockHash, 3: BlockNo
+
+	const {
+		txnList,
+		blockHashList,
+		blockSearch,
+		getBlockHash,
+		currentChannel,
+		getTxnList,
+		getBlockSearch,
+		blockTxnIdList
+	} = props;
 
 	useEffect(() => {
-		if (searchClick) {
-			setError(props.searchError);
-			if (!props.searchError) handleDialogOpen();
-			setSearchClick(false);
+		if (searchAttempt === 0) return;
+
+		const isTxnFound = txnList && typeof txnList !== 'string';
+		const isBlockHashFound = blockHashList && typeof blockHashList !== 'string';
+		const isBlockNoFound = blockSearch && typeof blockSearch !== 'string';
+
+		if (searchAttempt === 3) { // Block No
+			if (isBlockNoFound) {
+				setSelectedOp('Block No');
+				handleDialogOpen();
+				setError('');
+			} else {
+				setError('Block not found');
+			}
+			setSearchAttempt(0);
+		} else if (searchAttempt === 1) { // Txn Hash
+			if (isTxnFound) {
+				setSelectedOp('Txn Hash');
+				handleDialogOpen();
+				setError('');
+				setSearchAttempt(0);
+			} else {
+				// Not found as Txn, try Block Hash
+				getBlockHash(currentChannel, search).then(() => {
+					setSearchAttempt(2);
+				});
+			}
+		} else if (searchAttempt === 2) { // Block Hash
+			if (isBlockHashFound) {
+				setSelectedOp('Block Hash');
+				handleDialogOpen();
+				setError('');
+			} else {
+				setError('Transaction or Block not found');
+			}
+			setSearchAttempt(0);
 		}
-	}, [searchClick]);
+	}, [searchAttempt, txnList, blockHashList, blockSearch, search, currentChannel, getBlockHash]);
 
 	const searchData = async () => {
-		if (selectedOp === 'Txn Hash') {
-			await props.getTxnList(props.currentChannel, search);
-		} else if (selectedOp === 'Block No') {
-			await props.getBlockSearch(props.currentChannel, search);
-		} else if (selectedOp === 'Block Hash') {
-			await props.getBlockHash(props.currentChannel, search);
-		} else if (selectedOp === 'Block By Txn ID') {
-			console.log('entered');
-			await props.getBlockByTxnId(props.currentChannel, search);
+		if (!isNaN(search) && !isNaN(parseFloat(search))) {
+			await getBlockSearch(currentChannel, search);
+			setSearchAttempt(3);
+		} else {
+			// Try Txn Hash first
+			await getTxnList(currentChannel, search);
+			setSearchAttempt(1);
 		}
-		setSearchClick(true);
 	};
+
 	const handleSubmit = async e => {
 		e.preventDefault();
-		if (
-			!search ||
-			(selectedOp === 'Block No' && (isNaN(search) || search.length > 9))
-		) {
-			setError('Please enter valid txn hash/block no/block hash/block by txn Id');
+		if (!search) {
+			setError('Please enter valid txn hash/block no/block hash');
 			return;
 		}
 		searchData();
@@ -107,81 +206,76 @@ const SearchByQuery = props => {
 		setDialogOpen(false);
 	};
 
+	const searchInputRef = React.useRef(null);
+
+	useEffect(() => {
+		const handleKeyDown = event => {
+			if (event.key === '/' && document.activeElement !== searchInputRef.current) {
+				event.preventDefault();
+				searchInputRef.current.focus();
+			}
+		};
+
+		document.addEventListener('keydown', handleKeyDown);
+
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown);
+		};
+	}, []);
+
 	return (
-		<div
-			className={classes.searchField}
-			style={{ marginBottom: !error ? '23px' : '0px' }}
-		>
-			<TextField
-				value={search}
-				onChange={e => {
-					setSearch(e.target.value);
-					if (error) {
-						setDialogOpen(false);
-						setError('');
-					}
-				}}
-				onKeyPress={e => e.key === 'Enter' && handleSubmit(e)}
-				label=" Search by Txn Hash / Block no / BlockHash / Block by Txn Id"
-				variant="outlined"
-				fullWidth
-				error={error}
-				helperText={error}
-				className={classes.searchInput}
-				InputProps={{
-					startAdornment: (
-						<InputAdornment position="start">
-							<Select
-								value={selectedOp}
-								className={classes.selectInput}
-								onChange={e => {
-									setSelectedOp(e.target.value);
-									if (error) {
-										setDialogOpen(false);
-										setError('');
-									}
-								}}
-								disableUnderline
-								MenuProps={{
-									anchorOrigin: {
-										vertical: 'bottom',
-										horizontal: 'left'
-									},
-									getContentAnchorEl: null
-								}}
-							>
-								{options.map(option => (
-									<MenuItem key={option} value={option}>
-										{option}
-									</MenuItem>
-								))}
-							</Select>
-						</InputAdornment>
-					),
-					endAdornment: (
-						<InputAdornment position="end">
-							<IconButton onClick={handleSubmit} className={classes.iconButton}>
-								<SearchIcon />
-							</IconButton>
-						</InputAdornment>
-					)
-				}}
-			/>
+		<div style={{ marginBottom: error ? '0px' : '23px' }}>
+			<div className={classes.searchContainer}>
+				<div className={classes.searchLeft}>
+					<SearchIcon
+						className={classes.searchIcon}
+						onClick={handleSubmit}
+					/>
+					<TextField
+						inputRef={searchInputRef}
+						value={search}
+						onChange={e => {
+							setSearch(e.target.value);
+							if (error) {
+								setDialogOpen(false);
+								setError('');
+							}
+						}}
+						onKeyPress={e => e.key === 'Enter' && handleSubmit(e)}
+						placeholder="Search by txn hash / block..."
+						variant="standard"
+						fullWidth
+						className={classes.searchInput}
+					/>
+				</div>
+				<div className={classes.searchRight}>
+					<span className={classes.slashText}>/</span>
+				</div>
+			</div>
+			{error && (
+				<div className={classes.errorText}>{error}</div>
+			)}
 			<Dialog
 				open={dialogOpen && !error}
 				onClose={handleDialogClose}
-				fullWidth
-				maxWidth="md"
+				maxWidth={false}
+				PaperProps={{
+					style: {
+						backgroundColor: 'transparent',
+						boxShadow: 'none',
+						borderRadius: 8
+					}
+				}}
 			>
 				{!error && selectedOp === 'Block No' ? (
-					<BlockView blockHash={blockSearch} onClose={handleDialogClose} />
+					<BlockDetails block={blockSearch} onClose={handleDialogClose} />
 				) : !error && selectedOp === 'Txn Hash' ? (
-					<TransactionView transaction={txnList} onClose={handleDialogClose} />
+					<TransactionDetails transaction={txnList} onClose={handleDialogClose} />
 				) : !error && selectedOp === 'Block By Txn ID' ? (
-					<BlockTxIdView blockByTxId={blockTxnIdList} onClose={handleDialogClose} />
+					<BlockDetails block={blockTxnIdList} onClose={handleDialogClose} />
 				) : (
-					<BlockHashView
-						blockByBlockHash={blockHashList}
+					<BlockDetails
+						block={blockHashList}
 						onClose={handleDialogClose}
 					/>
 				)}

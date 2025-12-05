@@ -21,7 +21,6 @@ import {
 	getDashStatsType,
 	getPeerListType,
 	getTransactionByOrgType,
-	getTransactionListType,
 	getTransactionPerHourType,
 	getTransactionPerMinType,
 	getUserListType,
@@ -46,7 +45,6 @@ const {
 	chaincodeList,
 	channels,
 	peerList,
-	transactionList,
 	transactionListSearch
 } = tableOperations;
 
@@ -123,7 +121,7 @@ export class LandingPage extends Component {
 			getPeerList,
 			getBlockActivity,
 			getTransactionByOrg,
-			getTransactionList,
+
 			getTransactionListSearch,
 			getTransactionPerHour,
 			getTransactionPerMin,
@@ -217,7 +215,7 @@ LandingPage.propTypes = {
 	getDashStats: getDashStatsType.isRequired,
 	getPeerList: getPeerListType.isRequired,
 	getTransactionByOrg: getTransactionByOrgType.isRequired,
-	getTransactionList: getTransactionListType.isRequired,
+
 	getTransactionPerHour: getTransactionPerHourType.isRequired,
 	getTransactionPerMin: getTransactionPerMinType.isRequired,
 	userlist: getUserListType.isRequired

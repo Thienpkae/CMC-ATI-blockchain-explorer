@@ -8,13 +8,13 @@ import { unwrap } from '@material-ui/core/test-utils';
 import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider';
 import Adapter from 'enzyme-adapter-react-16';
 import { createMuiTheme } from '@material-ui/core/styles';
-import BlockView from './BlockView';
+import BlockDetails from './BlockDetails';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-const ComponentNaked = unwrap(BlockView);
+const ComponentNaked = unwrap(BlockDetails);
 
-describe('<BlockView />', () => {
+describe('<BlockDetails />', () => {
 	it('with shallow', () => {
 		const wrapper = shallow(<ComponentNaked classes={{}} />);
 		expect(wrapper.exists()).toBe(true);
@@ -23,7 +23,7 @@ describe('<BlockView />', () => {
 	it('with mount', () => {
 		const wrapper = mount(
 			<MuiThemeProvider theme={createMuiTheme()}>
-				<BlockView classes={{}} />
+				<BlockDetails classes={{}} />
 			</MuiThemeProvider>
 		);
 		expect(wrapper.exists()).toBe(true);

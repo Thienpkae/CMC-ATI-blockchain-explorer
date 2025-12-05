@@ -5,9 +5,9 @@
 import { combineReducers } from 'redux';
 import types from './types';
 
-const initialState = {};
 
-const blockListSearchReducer = (state = initialState, action = {}) => {
+
+const blockListSearchReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.BLOCK_LIST_SEARCH) {
 		return {
 			rows: action.payload.rows.blocksData,
@@ -22,7 +22,7 @@ const blockListSearchReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const chaincodeListReducer = (state = initialState, action = {}) => {
+const chaincodeListReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.CHAINCODE_LIST) {
 		return {
 			rows: action.payload.chaincode,
@@ -34,7 +34,7 @@ const chaincodeListReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const channelsReducer = (state = initialState, action = {}) => {
+const channelsReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.CHANNELS) {
 		return {
 			rows: action.payload.channels,
@@ -46,7 +46,7 @@ const channelsReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const peerListReducer = (state = initialState, action = {}) => {
+const peerListReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.PEER_LIST) {
 		return {
 			rows: action.payload.peers,
@@ -57,7 +57,7 @@ const peerListReducer = (state = initialState, action = {}) => {
 		return state;
 	}
 };
-const blockRangeSearchReducer = (state = initialState, action = {}) => {
+const blockRangeSearchReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.BLOCK_RANGE_SEARCH) {
 		return {
 			rows: action.payload,
@@ -73,7 +73,7 @@ const blockRangeSearchReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const txnListReducer = (state = initialState, action = {}) => {
+const txnListReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.TXN_LIST) {
 		return {
 			rows: action.payload,
@@ -85,7 +85,7 @@ const txnListReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const blockHashReducer = (state = initialState, action = {}) => {
+const blockHashReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.BLOCK_HASH) {
 		return {
 			rows: action.payload,
@@ -96,7 +96,7 @@ const blockHashReducer = (state = initialState, action = {}) => {
 		return state;
 	}
 };
-const blockTxnIdReducer = (state = initialState, action = {}) => {
+const blockTxnIdReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.BLOCK_TXN) {
 		return {
 			rows: action.payload,
@@ -107,7 +107,7 @@ const blockTxnIdReducer = (state = initialState, action = {}) => {
 		return state;
 	}
 };
-const blockSearchReducer = (state = initialState, action = {}) => {
+const blockSearchReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.BLOCK_SEARCH) {
 		return {
 			rows: action.payload,
@@ -119,7 +119,7 @@ const blockSearchReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const chaincodeMetaDataReducer = (state = initialState, action = {}) => {
+const chaincodeMetaDataReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.CHAINCODE_META_DATA) {
 		return {
 			rows: action.payload,
@@ -130,7 +130,7 @@ const chaincodeMetaDataReducer = (state = initialState, action = {}) => {
 		return state;
 	}
 };
-const channelPeerDataReducer = (state = initialState, action = {}) => {
+const channelPeerDataReducer = (state = { rows: {}, loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.CHANNEL_PEER_DATA) {
 		return {
 			rows: action.payload,
@@ -142,7 +142,7 @@ const channelPeerDataReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const transactionReducer = (state = initialState, action = {}) => {
+const transactionReducer = (state = { transaction: {}, loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.TRANSACTION) {
 		return {
 			transaction: action.payload.row,
@@ -154,7 +154,7 @@ const transactionReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const transactionListReducer = (state = initialState, action = {}) => {
+const transactionListReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.TRANSACTION_LIST) {
 		return {
 			rows: action.payload.rows?.txnsData,
@@ -167,7 +167,7 @@ const transactionListReducer = (state = initialState, action = {}) => {
 	}
 };
 
-const transactionListSearchReducer = (state = initialState, action = {}) => {
+const transactionListSearchReducer = (state = { rows: [], loaded: false, errors: null }, action = {}) => {
 	if (action.type === types.TRANSACTION_LIST_SEARCH) {
 		return {
 			rows: action.payload.rows?.txnsData,

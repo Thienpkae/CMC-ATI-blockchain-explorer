@@ -93,13 +93,19 @@ export class Users extends Component {
 		};
 	}
 
-	componentWillReceiveProps(nextProps) {
-		const { registered = [], error, userlists } = nextProps;
-		this.setState(() => ({
-			registered,
-			error,
-			userlists
-		}));
+	componentDidUpdate(prevProps) {
+		const { registered, error, userlists } = this.props;
+		if (
+			registered !== prevProps.registered ||
+			error !== prevProps.error ||
+			userlists !== prevProps.userlists
+		) {
+			this.setState(() => ({
+				registered,
+				error,
+				userlists
+			}));
+		}
 	}
 
 	handleChange = event => {

@@ -8,39 +8,46 @@ import ReactTable from '../Styled/Table';
 import { channelPeerDataType, channelsType } from '../types';
 import ChannelEndorserView from '../View/ChannelEndorserView';
 import ChannelCommitterView from '../View/ChannelCommitterView';
+import BlockDetails from '../View/BlockDetails';
 import Dialog from '@material-ui/core/Dialog';
-import { E006, E007, E008 } from './constants';
+import { E007, E008 } from './constants';
 import { Info } from '@material-ui/icons';
+import Tooltip from '@material-ui/core/Tooltip';
 import moment from 'moment';
+
+const monoStack = '"JetBrains Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace';
+
 const styles = theme => {
 	const { type } = theme.palette;
 	const dark = type === 'dark';
 	return {
 		partialHash: {
-			textAlign: 'center',
+			textAlign: 'left',
 			position: 'relative !important',
-			'&:hover $fullHash': {
-				display: 'block',
-				position: 'absolute !important',
-				padding: '4px 4px',
-				backgroundColor: dark ? '#5e558e' : '#000000',
-				marginTop: -30,
-				marginLeft: -215,
-				borderRadius: 8,
-				color: '#ffffff',
-				opacity: dark ? 1 : undefined
-			},
-			'&:hover $lastFullHash': {
-				display: 'block',
-				position: 'absolute !important',
-				padding: '4px 4px',
-				backgroundColor: dark ? '#5e558e' : '#000000',
-				marginTop: -30,
-				marginLeft: -415,
-				borderRadius: 8,
-				color: '#ffffff',
-				opacity: dark ? 1 : undefined
-			}
+			display: 'inline-block',
+			margin: 0,
+			padding: 0,
+			listStyle: 'none',
+			cursor: 'pointer',
+			fontFamily: monoStack,
+			overflow: 'hidden',
+			textOverflow: 'ellipsis',
+			whiteSpace: 'nowrap',
+			maxWidth: '100%'
+		},
+		customTooltip: {
+			backgroundColor: dark ? '#5e558e' : '#000000',
+			borderRadius: 8,
+			color: '#ffffff',
+			fontSize: '12px',
+			padding: '8px',
+			maxWidth: 'none'
+		},
+		fullHash: {
+			display: 'none'
+		},
+		lastFullHash: {
+			display: 'none'
 		}
 	};
 };
@@ -50,9 +57,13 @@ class Channels extends Component {
 		this.state = {
 			dialogOpen: false,
 			dialogOpenEndorser: false,
-			sourceDialog: false
+			sourceDialog: false,
+			dialogOpenBlockDetails: false,
+			selectedBlock: null
 		};
 	}
+
+
 
 	handleDialogOpenCommitter = async currentChannel => {
 		await this.props.getChannelPeerData(currentChannel);
@@ -70,10 +81,42 @@ class Channels extends Component {
 		this.setState({ dialogOpenEndorser: false });
 	};
 
+	handleDialogOpenBlockDetails = async (row) => {
+		const blockHash = row.channel_genesis_hash;
+		const initialBlock = {
+			blocknum: 0,
+			channelname: row.channelname,
+			createdt: row.createdat,
+			txcount: 1,
+			blockhash: blockHash,
+			datahash: '',
+			prehash: ''
+		};
+
+		if (blockHash) {
+			const { blockHashList } = this.props;
+			if (blockHashList && blockHashList.blockhash === blockHash) {
+				this.setState({ dialogOpenBlockDetails: true, selectedBlock: blockHashList });
+			} else {
+				this.setState({ dialogOpenBlockDetails: true, selectedBlock: initialBlock });
+				await this.props.getBlockHash(this.props.currentChannel, blockHash);
+			}
+		}
+	};
+
+	handleDialogCloseBlockDetails = () => {
+		this.setState({ dialogOpenBlockDetails: false });
+	};
+
 	reactTableSetup = classes => [
 		{
-			Header: 'ID',
+			Header: () => <div style={{ textAlign: 'left' }}>ID</div>,
 			accessor: 'id',
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value}
+				</div>
+			),
 			filterMethod: (filter, rows) =>
 				matchSorter(
 					rows,
@@ -81,12 +124,15 @@ class Channels extends Component {
 					{ keys: ['id'] },
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
-			filterAll: true,
-			width: 100
 		},
 		{
-			Header: 'Channel Name',
+			Header: () => <div style={{ textAlign: 'left' }}>Channel Name</div>,
 			accessor: 'channelname',
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value}
+				</div>
+			),
 			filterMethod: (filter, rows) =>
 				matchSorter(
 					rows,
@@ -94,37 +140,53 @@ class Channels extends Component {
 					{ keys: ['channelname'] },
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
-			filterAll: true
 		},
 		{
-			Header: (
-				<span>
-					Total Blocks
-					<sup title={E006} style={{ padding: '3px' }}>
-						<Info style={{ fontSize: 'medium', marginTop: '5px' }} />
-					</sup>
-				</span>
+			Header: () => <div style={{ textAlign: 'left' }}>Genesis Hash</div>,
+			accessor: 'channel_genesis_hash',
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value ? (
+						<Tooltip
+							title={row.value}
+							placement="top"
+							classes={{ tooltip: classes.customTooltip }}
+						>
+							<a
+								data-command="block-partial-hash"
+								className={classes.partialHash}
+								onClick={() => this.handleDialogOpenBlockDetails(row.original)}
+								href="#/channels"
+							>
+								{row.value}
+							</a>
+						</Tooltip>
+					) : '-'}
+				</div>
 			),
-			accessor: 'totalBlocks',
 			filterMethod: (filter, rows) =>
 				matchSorter(
 					rows,
 					filter.value,
-					{ keys: ['totalBlocks'] },
+					{ keys: ['channel_genesis_hash'] },
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
 			filterAll: true
 		},
+
 		{
-			Header: (
-				<span>
-					Blocks
-					<sup title={E007} style={{ padding: '3px' }}>
-						<Info style={{ fontSize: 'medium', marginTop: '5px' }} />
-					</sup>
-				</span>
-			),
+			Header: () => <div style={{ textAlign: 'left' }}>
+				Blocks
+				<sup title={E007} style={{ padding: '3px' }}>
+					<Info style={{ fontSize: 'medium', marginTop: '5px' }} />
+				</sup>
+			</div>,
 			accessor: 'blocks',
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value}
+				</div>
+			),
 			filterMethod: (filter, rows) =>
 				matchSorter(
 					rows,
@@ -132,19 +194,21 @@ class Channels extends Component {
 					{ keys: ['blocks'] },
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
-			filterAll: true,
-			width: 125
+			filterAll: true
 		},
 		{
-			Header: (
-				<span>
-					Transactions
-					<sup title={E008} style={{ padding: '3px' }}>
-						<Info style={{ fontSize: 'medium', marginTop: '5px' }} />
-					</sup>
-				</span>
-			),
+			Header: () => <div style={{ textAlign: 'left' }}>
+				Transactions
+				<sup title={E008} style={{ padding: '3px' }}>
+					<Info style={{ fontSize: 'medium', marginTop: '5px' }} />
+				</sup>
+			</div>,
 			accessor: 'transactions',
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value}
+				</div>
+			),
 			filterMethod: (filter, rows) =>
 				matchSorter(
 					rows,
@@ -152,11 +216,10 @@ class Channels extends Component {
 					{ keys: ['transactions'] },
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
-			filterAll: true,
-			width: 125
+			filterAll: true
 		},
 		{
-			Header: <span>Committers</span>,
+			Header: () => <div style={{ textAlign: 'left' }}>Committers</div>,
 			accessor: 'channel_members.committers',
 			filterMethod: (filter, rows) =>
 				matchSorter(
@@ -167,18 +230,19 @@ class Channels extends Component {
 				),
 			filterAll: true,
 			Cell: ({ value }) => {
+				if (!value) return null;
 				const cts = value.slice(0, 5);
 				const rcc = value.length - cts.length;
 
 				return (
-					<span>
+					<div style={{ textAlign: 'left' }}>
 						{cts.map((committer, i) => (
-							<>
+							<React.Fragment key={committer}>
 								{value.length > 1 && `${i + 1}. `}
 								{i > 0 && ' '}
 								{committer}
 								<br />
-							</>
+							</React.Fragment>
 						))}
 						{rcc > 0 && (
 							<span>
@@ -195,12 +259,12 @@ class Channels extends Component {
 								</a>
 							</span>
 						)}
-					</span>
+					</div>
 				);
 			}
 		},
 		{
-			Header: <span>Endorsers</span>,
+			Header: () => <div style={{ textAlign: 'left' }}>Endorsers</div>,
 			accessor: 'channel_members.endorsers',
 			filterMethod: (filter, rows) =>
 				matchSorter(
@@ -210,17 +274,18 @@ class Channels extends Component {
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
 			Cell: ({ value }) => {
+				if (!value) return null;
 				const etc = value.slice(0, 5);
 				const rec = value.length - etc.length;
 
 				return (
-					<span>
+					<div style={{ textAlign: 'left' }}>
 						{etc.map((endorser, i) => (
-							<>
+							<React.Fragment key={endorser}>
 								{i > 0 && ' '}
 								{i + 1}. {endorser}
 								<br />
-							</>
+							</React.Fragment>
 						))}
 						{rec > 0 && (
 							<span>
@@ -235,12 +300,12 @@ class Channels extends Component {
 								</a>
 							</span>
 						)}
-					</span>
+					</div>
 				);
 			}
 		},
 		{
-			Header: 'Timestamp',
+			Header: () => <div style={{ textAlign: 'left' }}>Created At</div>,
 			accessor: 'createdat',
 			filterMethod: (filter, rows) =>
 				matchSorter(
@@ -250,20 +315,52 @@ class Channels extends Component {
 					{ threshold: matchSorter.rankings.SIMPLEMATCH }
 				),
 			filterAll: true,
-			Cell: ({ value }) => moment.utc(value).format('YYYY-MM-DD, HH:mm:ss UTC')
+			Cell: ({ value }) => (
+				<div style={{ textAlign: 'left' }}>
+					{moment.utc(value).format('HH:mm:ss - DD/MM/YYYY')}
+				</div>
+			)
+		},
+		{
+			Header: () => <div style={{ textAlign: 'left' }}>Updated At</div>,
+			accessor: 'latestdate',
+			filterMethod: (filter, rows) =>
+				matchSorter(
+					rows,
+					filter.value,
+					{ keys: ['latestdate'] },
+					{ threshold: matchSorter.rankings.SIMPLEMATCH }
+				),
+			filterAll: true,
+			Cell: ({ value }) => (
+				<div style={{ textAlign: 'left' }}>
+					{moment.utc(value).format('HH:mm:ss - DD/MM/YYYY')}
+				</div>
+			)
 		}
 	];
 
 	render() {
-		const { channels, channelPeerData, classes } = this.props;
-		const { dialogOpen, dialogOpenEndorser } = this.state;
+		const { channels, channelPeerData, classes, blockHashList } = this.props;
+		const { dialogOpen, dialogOpenEndorser, dialogOpenBlockDetails, selectedBlock } = this.state;
+
+		let blockToDisplay = selectedBlock;
+		if (selectedBlock && blockHashList && blockHashList.blockhash === selectedBlock.blockhash) {
+			blockToDisplay = blockHashList;
+		}
+
 		return (
-			<div>
+			<div style={{ marginTop: 40 }}>
 				<ReactTable
+					className="network-table"
 					data={channels}
 					columns={this.reactTableSetup(classes)}
 					defaultPageSize={5}
-					filterable
+					previousText="Previous"
+					nextText="Next"
+					pageText="Page"
+					ofText="of"
+					rowsText="rows"
 					minRows={0}
 					showPagination={channels.length >= 5}
 				/>
@@ -288,6 +385,17 @@ class Channels extends Component {
 					<ChannelCommitterView
 						channelPeerData={channelPeerData}
 						onClose={this.handleDialogCloseCommitter}
+					/>
+				</Dialog>
+
+				<Dialog
+					open={dialogOpenBlockDetails}
+					onClose={this.handleDialogCloseBlockDetails}
+					maxWidth={false}
+				>
+					<BlockDetails
+						block={blockToDisplay}
+						onClose={this.handleDialogCloseBlockDetails}
 					/>
 				</Dialog>
 			</div>

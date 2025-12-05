@@ -5,17 +5,28 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
-import { Button } from 'reactstrap';
-import matchSorter from 'match-sorter';
+import Popper from '@material-ui/core/Popper';
+import Paper from '@material-ui/core/Paper';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import Tooltip from '@material-ui/core/Tooltip';
+import Checkbox from '@material-ui/core/Checkbox';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
 import find from 'lodash/find';
 import moment from 'moment';
-import { isNull } from 'util';
+import Timeago from 'react-timeago';
+import buildFormatter from 'react-timeago/lib/formatters/buildFormatter';
+import shortEnglishStrings from 'react-timeago/lib/language-strings/en-short';
 import ReactTable from '../Styled/Table';
-import BlockView from '../View/BlockView';
-import TransactionView from '../View/TransactionView';
-import MultiSelect from '../Styled/MultiSelect';
-import DatePicker from '../Styled/DatePicker';
+import BlockDetails from '../View/BlockDetails';
+import TransactionDetails from '../View/TransactionDetails';
+import BlockTransactions from '../View/BlockTransactions';
 import SearchIcon from '@material-ui/icons/Search';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import DatePicker from '../Styled/DatePicker';
 import {
 	blockListSearchType,
 	blockRangeSearchType,
@@ -25,22 +36,18 @@ import {
 	getTxnListType,
 	txnListType
 } from '../types';
-import { FormHelperText, TablePagination, TextField } from '@mui/material';
-import { MenuItem, Select } from '@material-ui/core';
 import {
 	reg,
-	rowsPerPageOptions,
-	rangeLimitOptions,
 	defaultRangeLimit,
 	E001,
 	E002,
 	E003,
-	E004,
-	E005
+	E004
 } from './constants';
-import { Info } from '@material-ui/icons';
 
 /* istanbul ignore next */
+const monoStack = '"JetBrains Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace';
+
 const styles = theme => {
 	const { type } = theme.palette;
 	const dark = type === 'dark';
@@ -48,6 +55,19 @@ const styles = theme => {
 		hash: {
 			'&, & li, & ul': {
 				overflow: 'visible !important'
+			},
+			'& .rt-th, & .rt-td': {
+				textAlign: 'left !important'
+			}
+		},
+		tableColumn: {
+			'& .rt-th, & .rt-td': {
+				verticalAlign: 'middle !important'
+			}
+		},
+		centerColumn: {
+			'& .rt-th, & .rt-td': {
+				textAlign: 'center !important'
 			}
 		},
 		htinputs: {
@@ -66,36 +86,26 @@ const styles = theme => {
 			marginRight: '5px'
 		},
 		partialHash: {
-			textAlign: 'center',
+			textAlign: 'left',
 			position: 'relative !important',
-			'&:hover $fullHash': {
-				display: 'block',
-				position: 'absolute !important',
-				padding: '4px 4px',
-				backgroundColor: dark ? '#5e558e' : '#000000',
-				marginTop: -30,
-				marginLeft: -215,
-				borderRadius: 8,
-				color: '#ffffff',
-				opacity: dark ? 1 : undefined
-			},
-			'&:hover $lastFullHash': {
-				display: 'block',
-				position: 'absolute !important',
-				padding: '4px 4px',
-				backgroundColor: dark ? '#5e558e' : '#000000',
-				marginTop: -30,
-				marginLeft: -415,
-				borderRadius: 8,
-				color: '#ffffff',
-				opacity: dark ? 1 : undefined
-			}
+			display: 'inline-block',
+			margin: 0,
+			padding: 0,
+			listStyle: 'none',
+			cursor: 'pointer',
+			fontFamily: monoStack,
+			overflow: 'hidden',
+			textOverflow: 'ellipsis',
+			whiteSpace: 'nowrap',
+			maxWidth: '100%'
 		},
-		fullHash: {
-			display: 'none'
-		},
-		lastFullHash: {
-			display: 'none'
+		customTooltip: {
+			backgroundColor: dark ? '#5e558e' : '#000000',
+			borderRadius: 8,
+			color: '#ffffff',
+			fontSize: '12px',
+			padding: '8px',
+			maxWidth: 'none'
 		},
 		filter: {
 			width: '100%',
@@ -142,7 +152,7 @@ const styles = theme => {
 			}
 		},
 		text: {
-			alignSelf: 'center',
+			alignSelf: 'left',
 			marginRight: '10px',
 			marginLeft: '15px'
 		},
@@ -154,31 +164,185 @@ const styles = theme => {
 		iconButton: {
 			color: '#21295c',
 			alignSelf: 'center'
+		},
+		filterToolbar: {
+			display: 'flex',
+			flexWrap: 'wrap',
+			gap: 16,
+			marginBottom: 16,
+			marginTop: 16
+		},
+		toolbarCard: {
+			display: 'flex',
+			alignItems: 'center',
+			height: 48,
+			borderRadius: 8,
+			border: '1px solid #eeeeee',
+			backgroundColor: dark ? '#1f1f29' : '#ffffff',
+			padding: '12px 16px'
+		},
+		searchCard: {
+			flex: '1 1 360px',
+			gap: 12
+		},
+		searchInputField: {
+			border: 'none',
+			outline: 'none',
+			flex: 1,
+			fontSize: 14,
+			background: 'transparent',
+			color: dark ? '#f5f5f5' : '#1f1f1f'
+		},
+		dateCard: {
+			flex: '0 0 220px',
+			minWidth: 220,
+			justifyContent: 'space-between',
+			cursor: 'pointer'
+		},
+		dateRangeValue: {
+			fontSize: 14,
+			color: dark ? '#f5f5f5' : '#757575',
+			fontWeight: 400,
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif'
+		},
+		dateCardContent: {
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			width: '100%',
+			gap: 8
+		},
+		chevronIcon: {
+			width: 24,
+			height: 24,
+			color: dark ? '#9e9e9e' : '#9e9e9e',
+			flexShrink: 0
+		},
+		orgCard: {
+			flex: '0 0 200px',
+			minWidth: 200,
+			justifyContent: 'space-between',
+			cursor: 'pointer'
+		},
+		orgCardContent: {
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			width: '100%',
+			gap: 8
+		},
+		orgValue: {
+			fontSize: 14,
+			color: dark ? '#f5f5f5' : '#757575',
+			fontWeight: 400,
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			lineHeight: '20px',
+			flex: 1,
+			overflow: 'hidden',
+			textOverflow: 'ellipsis',
+			whiteSpace: 'nowrap'
+		},
+		orgMenu: {
+			'& .MuiPaper-root': {
+				borderRadius: 8,
+				marginTop: 4,
+				boxShadow: '0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12)'
+			}
+		},
+		orgMenuItem: {
+			fontSize: 14,
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			padding: '8px 16px',
+			'&:hover': {
+				backgroundColor: dark ? '#2a2a35' : '#f5f5f5'
+			}
+		},
+		clearFilterButton: {
+			height: 48,
+			borderRadius: 8,
+			backgroundColor: '#3b82f6',
+			border: 'none',
+			padding: '0 24px',
+			fontWeight: 500,
+			color: '#ffffff',
+			cursor: 'pointer',
+			textTransform: 'none'
+		},
+		datePopover: {
+			padding: 16,
+			maxWidth: 360,
+			'& .react-datepicker-popper': {
+				position: 'static !important',
+				transform: 'none !important',
+				zIndex: 'auto !important'
+			},
+			'& .react-datepicker__input-container': {
+				display: 'block'
+			}
+		},
+		datePopoverRow: {
+			display: 'flex',
+			flexDirection: 'column',
+			gap: 8,
+			marginBottom: 12
+		},
+		datePopoverActions: {
+			display: 'flex',
+			justifyContent: 'flex-end',
+			gap: 8,
+			marginTop: 8
+		},
+		dateLabel: {
+			fontSize: 14,
+			fontWeight: 600,
+			marginBottom: 4,
+			color: dark ? '#f5f5f5' : '#333'
+		},
+		searchRight: {
+			width: 27,
+			height: 24,
+			border: '1px solid #E0E0E0',
+			borderRadius: 4,
+			padding: '2px 10px',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			backgroundColor: 'transparent',
+			boxSizing: 'border-box',
+			flexShrink: 0,
+			marginLeft: 8
+		},
+		slashText: {
+			fontFamily: '"Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif',
+			fontSize: 12,
+			lineHeight: '24px',
+			color: dark ? '#f5f5f5' : '#212121',
+			fontWeight: 400,
+			margin: 0,
+			padding: 0,
+			height: 24,
+			display: 'flex',
+			alignItems: 'center'
 		}
 	};
 };
-const tablePaginationStyle = {
-	display: 'flex',
-	justifyContent: 'end',
-	padding: '0px 15px',
-	alignItems: 'baseline',
-	'.MuiToolbar-root': {
-		alignItems: 'baseline'
-	}
-};
 let timer;
+const baseShortFormatter = buildFormatter(shortEnglishStrings);
+const shortFormatter = (...args) => `${baseShortFormatter(...args)} ago`;
+
 export class Blocks extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			dialogOpen: false,
 			dialogOpenBlockHash: false,
+			dialogOpenBlockTransactions: false,
+			selectedBlock: {},
 			err: false,
 			search: false,
 			to: moment(),
 			orgs: [],
 			options: [],
-			filtered: [],
 			sorted: [],
 			from: moment().subtract(1, 'days'),
 			blockHash: {},
@@ -191,11 +355,17 @@ export class Blocks extends Component {
 			endBlock: '',
 			rangeErr: '',
 			brs: false,
-			rangeLimit: defaultRangeLimit
+			rangeLimit: defaultRangeLimit,
+			blockSearchKeyword: '',
+			dateAnchorEl: null,
+			orgAnchorEl: null,
+			searchAttempt: null
 		};
+		this.searchInputRef = React.createRef();
 	}
 
 	componentDidMount() {
+		document.addEventListener('keydown', this.handleKeyDown);
 		const { blockListSearch } = this.props;
 		const selection = {};
 		blockListSearch?.forEach(element => {
@@ -223,15 +393,14 @@ export class Blocks extends Component {
 			this.searchBlockList(this.props.currentChannel);
 		}
 		if (
-			(!this.state.brs && prevState.page != this.state.page) ||
-			prevState.rowsPerPage != this.state.rowsPerPage ||
+			(!this.state.brs && prevState.page !== this.state.page) ||
 			this.state.searchClick
 		) {
 			this.setState({ searchClick: false });
 			this.handleSearch();
 		}
 
-		if (prevProps.blockRangeLoaded != this.props.blockRangeLoaded) {
+		if (prevProps.blockRangeLoaded !== this.props.blockRangeLoaded) {
 			if (this.props.blockRangeLoaded) {
 				if (typeof this.props.blockRangeSearch === 'string') {
 					this.setState({ rangeErr: this.props.blockRangeSearch });
@@ -240,12 +409,135 @@ export class Blocks extends Component {
 				if (this.state.rangeErr) this.setState({ rangeErr: '' });
 			}
 		}
+
+		if (
+			this.state.searchAttempt === 'block' &&
+			prevProps.blockSearch !== this.props.blockSearch
+		) {
+			if (this.props.blockSearch && typeof this.props.blockSearch !== 'string') {
+				this.setState({
+					dialogOpenBlockHash: true,
+					blockHash: this.props.blockSearch,
+					searchAttempt: null
+				});
+			} else {
+				this.setState({ searchAttempt: null });
+			}
+		}
 	}
 
 	componentWillUnmount() {
+		document.removeEventListener('keydown', this.handleKeyDown);
 		clearInterval(this.interval);
 		clearTimeout(timer);
 	}
+
+	handleKeyDown = event => {
+		if (event.key === '/' && document.activeElement !== this.searchInputRef.current) {
+			event.preventDefault();
+			this.searchInputRef.current.focus();
+		}
+	};
+
+	queueSearchRefresh = (options = {}) => {
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			this.setState({
+				page: 0,
+				searchClick: true,
+				brs: false,
+				...options
+			});
+		}, 300);
+	};
+
+	handleSearchSubmit = async e => {
+		if (e) e.preventDefault();
+		const keyword = this.state.blockSearchKeyword.trim();
+		if (!keyword) return;
+
+		if (!isNaN(keyword)) {
+			if (this.searchInputRef.current) {
+				this.searchInputRef.current.blur();
+			}
+			await this.props.getBlockSearch(this.props.currentChannel, keyword);
+			this.setState({ searchAttempt: 'block' });
+		}
+	};
+
+	handleBlockSearchChange = event => {
+		this.setState({ blockSearchKeyword: event.target.value });
+	};
+
+	handleDateTriggerClick = event => {
+		event.preventDefault();
+		event.stopPropagation();
+		const target = event.currentTarget;
+		this.setState(prevState => ({
+			dateAnchorEl: prevState.dateAnchorEl ? null : target
+		}));
+	};
+
+	handleDateRangeClose = () => {
+		// Blur any focused elements to prevent aria-hidden conflict
+		if (document.activeElement && document.activeElement.blur) {
+			document.activeElement.blur();
+		}
+		this.setState({ dateAnchorEl: null });
+	};
+
+	handleFromDateChange = date => {
+		if (!date) {
+			return;
+		}
+		if (date > this.state.to) {
+			this.setState({ err: true, from: date });
+			return;
+		}
+		this.setState({ from: date, err: false }, () =>
+			this.queueSearchRefresh({ queryFlag: true, defaultQuery: false })
+		);
+	};
+
+	handleToDateChange = date => {
+		if (!date) {
+			return;
+		}
+		if (date < this.state.from) {
+			this.setState({ err: true, to: date });
+			return;
+		}
+		this.setState({ to: date, err: false }, () =>
+			this.queueSearchRefresh({ queryFlag: true, defaultQuery: false })
+		);
+	};
+
+	getDateRangeLabel = () => {
+		const fromLabel = this.state.from ? moment(this.state.from).format('DD/MM/YYYY') : '--';
+		const toLabel = this.state.to ? moment(this.state.to).format('DD/MM/YYYY') : '--';
+		return `${fromLabel} - ${toLabel}`;
+	};
+
+	filterBlockList = list => {
+		if (!Array.isArray(list)) {
+			return list;
+		}
+		const keyword = this.state.blockSearchKeyword?.trim().toLowerCase();
+		if (!keyword) {
+			return list;
+		}
+		return list.filter(item => {
+			const tokens = [
+				item.blocknum !== undefined && item.blocknum !== null
+					? item.blocknum.toString().toLowerCase()
+					: '',
+				item.blockhash ? item.blockhash.toLowerCase() : '',
+				item.datahash ? item.datahash.toLowerCase() : '',
+				item.channelname ? item.channelname.toLowerCase() : ''
+			];
+			return tokens.some(val => val.includes(keyword));
+		});
+	};
 
 	handleCustomRender(selected, options) {
 		if (selected.length === 0) {
@@ -258,14 +550,37 @@ export class Blocks extends Component {
 		return selected.join(',');
 	}
 
+	handleOrgTriggerClick = event => {
+		event.preventDefault();
+		event.stopPropagation();
+		const target = event.currentTarget;
+		this.setState(prevState => ({
+			orgAnchorEl: prevState.orgAnchorEl ? null : target
+		}));
+	};
+
+	handleOrgMenuClose = () => {
+		this.setState({ orgAnchorEl: null });
+	};
+
+	handleOrgToggle = orgValue => {
+		const { orgs } = this.state;
+		const newOrgs = orgs.includes(orgValue)
+			? orgs.filter(o => o !== orgValue)
+			: [...orgs, orgValue];
+		this.setState({ orgs: newOrgs }, () =>
+			this.queueSearchRefresh({ queryFlag: true, defaultQuery: false })
+		);
+	};
+
 	searchBlockList = async channel => {
 		let pageParams = { page: this.state.page + 1, size: this.state.rowsPerPage };
 		let query = '';
 		if (this.state.queryFlag) {
 			query = this.state.from
 				? `from=${new Date(this.state.from).toString()}&to=${new Date(
-						this.state.to
-				  ).toString()}`
+					this.state.to
+				).toString()}`
 				: ``;
 			for (let i = 0; i < this.state.orgs.length; i++) {
 				query += `&orgs=${this.state.orgs[i]}`;
@@ -292,9 +607,6 @@ export class Blocks extends Component {
 		this.setState({ dialogOpen: true });
 	};
 
-	handleMultiSelect = value => {
-		this.setState({ orgs: value });
-	};
 
 	handleDialogClose = () => {
 		this.setState({ dialogOpen: false });
@@ -359,20 +671,30 @@ export class Blocks extends Component {
 		if (this.interval !== undefined) {
 			clearInterval(this.interval);
 		}
-		this.setState({
-			to: moment(),
-			orgs: [],
-			err: false,
-			from: moment().subtract(1, 'days'),
-			startBlock: '',
-			endBlock: ''
-		});
+		this.setState(
+			{
+				to: moment(),
+				orgs: [],
+				err: false,
+				from: moment().subtract(1, 'days'),
+				startBlock: '',
+				endBlock: '',
+				blockSearchKeyword: '',
+				filtered: [],
+				sorted: [],
+				defaultQuery: true,
+				queryFlag: false,
+				dateAnchorEl: null,
+				orgAnchorEl: null
+			},
+			() => this.queueSearchRefresh()
+		);
 	};
 
 	handleDialogOpenBlockHash = blockHash => {
 		const blockList = this.state.brs
 			? typeof this.props.blockRangeSearch !== 'string' &&
-			  this.props.blockRangeLoaded
+				this.props.blockRangeLoaded
 				? this.props.blockRangeSearch
 				: []
 			: this.props.blockListSearch;
@@ -388,462 +710,368 @@ export class Blocks extends Component {
 		this.setState({ dialogOpenBlockHash: false });
 	};
 
+	handleDialogOpenBlockTransactions = block => {
+		this.setState({
+			dialogOpenBlockTransactions: true,
+			selectedBlock: block
+		});
+	};
+
+	handleDialogCloseBlockTransactions = () => {
+		this.setState({ dialogOpenBlockTransactions: false });
+	};
+
 	handleEye = (row, val) => {
 		const { selection } = this.state;
 		const data = Object.assign({}, selection, { [row.index]: !val });
 		this.setState({ selection: data });
 	};
-	handlePageChange = (_e, page) => {
-		this.setState({ page: page });
-	};
-	handleRowsChange = e => {
-		this.setState({ page: 0, rowsPerPage: e.target.value });
+	handlePageChange = page => {
+		this.setState({ page });
 	};
 
 	reactTableSetup = classes => [
 		{
-			Header: 'Block Number',
+			Header: () => <div style={{ textAlign: 'left' }}>Block Number</div>,
 			accessor: 'blocknum',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['blocknum'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true,
-			width: 150
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value ?? '-'}
+				</div>
+			)
 		},
 		{
-			Header: 'Channel Name',
+			Header: () => <div style={{ textAlign: 'left' }}>Channel Name</div>,
 			accessor: 'channelname',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['channelname'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value ?? '-'}
+				</div>
+			)
 		},
 		{
-			Header: 'Number of Tx',
-			accessor: 'txcount',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['txcount'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true,
-			width: 150
-		},
-		{
-			Header: 'Data Hash',
+			Header: () => <div style={{ textAlign: 'left' }}>Data Hash</div>,
 			accessor: 'datahash',
 			className: classes.hash,
 			Cell: row => (
-				<span>
-					<ul className={classes.partialHash} href="#/blocks">
-						<div className={classes.fullHash} id="showTransactionId">
-							{row.value}
-						</div>{' '}
-						{row.value.slice(0, 6)} {!row.value ? '' : '... '}
-					</ul>{' '}
-				</span>
-			),
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['datahash'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+				<div style={{ textAlign: 'left' }}>
+					{row.value ? (
+						<Tooltip
+							title={row.value}
+							placement="top"
+							classes={{ tooltip: classes.customTooltip }}
+						>
+							<span className={classes.partialHash}>
+								{row.value}
+							</span>
+						</Tooltip>
+					) : '-'}
+				</div>
+			)
 		},
 		{
-			Header: 'Block Hash',
+			Header: () => <div style={{ textAlign: 'left' }}>Block Hash</div>,
 			accessor: 'blockhash',
 			className: classes.hash,
 			Cell: row => (
-				<span>
-					<a
-						data-command="block-partial-hash"
-						className={classes.partialHash}
-						onClick={() => this.handleDialogOpenBlockHash(row.value)}
-						href="#/blocks"
-					>
-						<div className={classes.fullHash} id="showTransactionId">
-							{row.value}
-						</div>{' '}
-						{row.value.slice(0, 6)} {!row.value ? '' : '... '}
-					</a>{' '}
-				</span>
-			),
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['blockhash'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+				<div style={{ textAlign: 'left' }}>
+					{row.value ? (
+						<Tooltip
+							title={row.value}
+							placement="top"
+							classes={{ tooltip: classes.customTooltip }}
+						>
+							<a
+								data-command="block-partial-hash"
+								className={classes.partialHash}
+								onClick={() => this.handleDialogOpenBlockHash(row.value)}
+								href="#/blocks"
+							>
+								{row.value}
+							</a>
+						</Tooltip>
+					) : '-'}
+				</div>
+			)
 		},
 		{
-			Header: 'Previous Hash',
+			Header: () => <div style={{ textAlign: 'left' }}>Previous Hash</div>,
 			accessor: 'prehash',
 			className: classes.hash,
 			Cell: row => (
-				<span>
-					<ul
-						className={classes.partialHash}
-						onClick={() => this.handleDialogOpenBlockHash(row.value)}
-						href="#/blocks"
-					>
-						<div className={classes.fullHash} id="showTransactionId">
-							{row.value}
-						</div>{' '}
-						{row.value.slice(0, 6)} {!row.value ? '' : '... '}
-					</ul>{' '}
-				</span>
-			),
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['prehash'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true,
-			width: 150
+				<div style={{ textAlign: 'left' }}>
+					{row.value ? (
+						<Tooltip
+							title={row.value}
+							placement="top"
+							classes={{ tooltip: classes.customTooltip }}
+						>
+							<span
+								className={classes.partialHash}
+								onClick={() => this.handleDialogOpenBlockHash(row.value)}
+							>
+								{row.value}
+							</span>
+						</Tooltip>
+					) : ''}
+				</div>
+			)
 		},
 		{
-			Header: 'Transactions',
-			accessor: 'txhash',
-			className: classes.hash,
+			Header: () => <div style={{ textAlign: 'left' }}>Tx</div>,
+			accessor: 'txcount',
 			Cell: row => (
-				<ul>
-					{!isNull(row.value)
-						? row.value.map(tid => (
-								<li
-									key={tid}
-									style={{
-										overflow: 'hidden',
-										whiteSpace: 'nowrap',
-										textOverflow: 'ellipsis'
-									}}
-								>
-									<a
-										className={classes.partialHash}
-										onClick={() => this.handleDialogOpen(tid)}
-										href="#/blocks"
-									>
-										<div className={classes.lastFullHash} id="showTransactionId">
-											{tid}
-										</div>{' '}
-										{tid.slice(0, 6)} {!tid ? '' : '... '}
-									</a>
-								</li>
-						  ))
-						: 'null'}
-				</ul>
-			),
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['txhash'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true
+				<div style={{ textAlign: 'left' }}>
+					<span
+						style={{ color: '#3b82f6', cursor: 'pointer' }}
+						onClick={() => this.handleDialogOpenBlockTransactions(row.original)}
+					>
+						{row.value ?? 0}
+					</span>
+				</div>
+			)
 		},
 		{
-			Header: 'Size(KB)',
+			Header: () => <div style={{ textAlign: 'left' }}>Size (KB)</div>,
 			accessor: 'blksize',
-			filterMethod: (filter, rows) =>
-				matchSorter(
-					rows,
-					filter.value,
-					{ keys: ['blksize'] },
-					{ threshold: matchSorter.rankings.SIMPLEMATCH }
-				),
-			filterAll: true,
-			width: 150
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value ?? '-'}
+				</div>
+			)
+		},
+		{
+			Header: () => <div style={{ textAlign: 'left' }}>Time</div>,
+			accessor: 'createdt',
+			Cell: row => (
+				<div style={{ textAlign: 'left' }}>
+					{row.value ? (
+						<Timeago date={row.value} live={false} formatter={shortFormatter} />
+					) : '-'}
+				</div>
+			)
 		}
 	];
 
 	render() {
 		const reversedBlockRangeList =
 			typeof this.props.blockRangeSearch !== 'string' &&
-			this.props.blockRangeLoaded
+				this.props.blockRangeLoaded
 				? this.props.blockRangeSearch
-						.slice()
-						.sort()
-						.reverse()
+					.slice()
+					.sort()
+					.reverse()
 				: [];
 		const blockList = this.state.brs
-			? reversedBlockRangeList.slice(
-					this.state.page * this.state.rowsPerPage,
-					(this.state.page + 1) * this.state.rowsPerPage
-			  )
+			? reversedBlockRangeList
 			: this.props.blockListSearch;
-		const noOfPages = this.state.brs
-			? typeof this.props.blockRangeSearch !== 'string' &&
-			  this.props.blockRangeLoaded &&
-			  Math.ceil(this.props.blockRangeSearch.length / this.state.rowsPerPage)
-			: this.props.blockListSearchTotalPages;
-		const { transaction, txnList, classes } = this.props;
-		const { blockHash, dialogOpen, dialogOpenBlockHash } = this.state;
+		const { transaction, classes } = this.props;
+		const { dialogOpen, dialogOpenBlockHash, blockHash } = this.state;
+		const filteredBlockList = this.filterBlockList(blockList) || [];
 		return (
 			<div>
-				<div className={`${classes.filter} row searchRow`}>
-					<div className={`${classes.filterElement} ${classes.filterDate} col-md-3`}>
-						<label className="label">From</label>
-						<DatePicker
-							id="from"
-							selected={this.state.from}
-							showTimeSelect
-							timeIntervals={5}
-							maxDate={this.state.to}
-							dateFormat="LLL"
-							popperPlacement="bottom"
-							popperModifiers={{
-								flip: { behavior: ['bottom'] },
-								preventOverflow: { enabled: false },
-								hide: { enabled: false }
-							}}
-							onChange={date => {
-								if (date > this.state.to) {
-									this.setState({ err: true, from: date });
-								} else {
-									this.setState({ from: date, err: false });
-								}
-							}}
+				<div className={classes.filterToolbar}>
+					<div className={`${classes.toolbarCard} ${classes.searchCard}`}>
+						<SearchIcon />
+						<input
+							ref={this.searchInputRef}
+							type="text"
+							className={classes.searchInputField}
+							placeholder="Search by block number / hash..."
+							value={this.state.blockSearchKeyword}
+							onChange={this.handleBlockSearchChange}
+							onKeyPress={e => e.key === 'Enter' && this.handleSearchSubmit(e)}
+							autoComplete="off"
 						/>
-					</div>
-					<div className={`${classes.filterElement} ${classes.filterDate} col-md-3`}>
-						<label className="label">To</label>
-						<DatePicker
-							id="to"
-							selected={this.state.to}
-							showTimeSelect
-							timeIntervals={5}
-							dateFormat="LLL"
-							minDate={this.state.from}
-							popperPlacement="bottom"
-							popperModifiers={{
-								flip: { behavior: ['bottom'] },
-								preventOverflow: { enabled: false },
-								hide: { enabled: false }
-							}}
-							onChange={date => {
-								if (date < this.state.from) {
-									this.setState({ err: true, to: date });
-								} else {
-									this.setState({ to: date, err: false });
-								}
-							}}
-						>
-							<div className="validator ">
-								{this.state.err && (
-									<span className=" label border-red">
-										{' '}
-										From date should be less than To date
-									</span>
-								)}
-							</div>
-						</DatePicker>
-					</div>
-					<div className="col-md-2">
-						<MultiSelect
-							hasSelectAll
-							valueRenderer={this.handleCustomRender}
-							shouldToggleOnHover={false}
-							selected={this.state.orgs}
-							options={this.state.options}
-							selectAllLabel="All Orgs"
-							onSelectedChanged={value => {
-								this.handleMultiSelect(value);
-							}}
-						/>
-					</div>
-					<div className="col-md-2">
-						<Button
-							className={classes.searchButton}
-							color="success"
-							disabled={this.state.err || !this.state.from != !this.state.to}
-							onClick={() => {
-								this.setState({
-									page: 0,
-									searchClick: true,
-									queryFlag: true,
-									defaultQuery: false,
-									brs: false
-								});
-							}}
-						>
-							Search
-						</Button>
-					</div>
-					<div className="col-md-1">
-						<Button
-							className={classes.filterButton}
-							color="primary"
-							onClick={() => {
-								this.handleClearSearch();
-							}}
-						>
-							Reset
-						</Button>
-					</div>
-					<div className="col-md-1">
-						<Button
-							className={classes.filterButton}
-							color="secondary"
-							onClick={() => this.setState({ filtered: [], sorted: [] })}
-						>
-							Clear Filter
-						</Button>
-					</div>
-				</div>
-				<form onSubmit={this.handleRangeSubmit}>
-					<div className={`${classes.filter} row searchRow`}>
-						<span className={classes.text}>
-							No of Blocks
-							<sup title={E005} style={{ padding: '3px' }}>
-								<Info style={{ fontSize: 'medium' }} />
-							</sup>
-						</span>
-						<Select
-							id="rangeLimitDropdown"
-							className="rangeLimitDropdown"
-							value={this.state.rangeLimit}
-							onChange={e => this.setState({ rangeLimit: e.target.value })}
-							displayEmpty
-							inputProps={{ 'aria-label': 'Without label' }}
-							disableUnderline
-						>
-							{rangeLimitOptions.map(opt => (
-								<MenuItem key={opt} value={opt}>
-									{opt}
-								</MenuItem>
-							))}
-						</Select>
-
-						<div
-							className={`${classes.filterElement}  ${classes.blockRangeRow}`}
-							style={{ width: '50vw' }}
-						>
-							<div style={{ whiteSpace: 'no-wrap', alignSelf: 'center' }}>
-								Block No:
-							</div>
-							<div className={classes.htinputs}>
-								<TextField
-									type="text"
-									name="startBlock"
-									className={classes.startBlock}
-									id="startBlock"
-									style={{ marginRight: '5px' }}
-									value={this.state.startBlock}
-									onChange={e => this.handleRangeChange(e)}
-									variant="standard"
-									InputLabelProps={{ shrink: true }}
-									label="From"
-									error={Boolean(this.state.rangeErr)}
-									size="small"
-								/>
-								<TextField
-									type="text"
-									name="endBlock"
-									id="endBlock"
-									value={this.state.endBlock}
-									onChange={e => this.handleRangeChange(e)}
-									variant="standard"
-									InputLabelProps={{ shrink: true }}
-									label="To"
-									error={Boolean(this.state.rangeErr)}
-									size="small"
-								/>
-								<div className={`${classes.errorText}`}>
-									{
-										<FormHelperText
-											title={this.state.rangeErr}
-											style={{
-												color: 'rgb(211, 47, 47)',
-												whiteSpace: 'nowrap',
-												overflow: 'hidden',
-												textOverflow: 'ellipsis'
-											}}
-										>
-											{this.state.rangeErr}
-										</FormHelperText>
-									}
-								</div>
-							</div>
-							<div
-								id="blockRangeSearchIcon"
-								className={classes.iconButton}
-								type="submit"
-								onClick={e => this.handleRangeSubmit(e)}
-							>
-								<SearchIcon />
-							</div>
+						<div className={classes.searchRight}>
+							<span className={classes.slashText}>/</span>
 						</div>
 					</div>
-				</form>
+					<div
+						className={`${classes.toolbarCard} ${classes.dateCard}`}
+						onClick={this.handleDateTriggerClick}
+					>
+						<div className={classes.dateCardContent}>
+							<span className={classes.dateRangeValue}>
+								{this.getDateRangeLabel()}
+							</span>
+							<ExpandMoreIcon className={classes.chevronIcon} />
+						</div>
+					</div>
+					<Popper
+						open={Boolean(this.state.dateAnchorEl)}
+						anchorEl={this.state.dateAnchorEl}
+						placement="bottom-start"
+						transition
+						disablePortal={false}
+						style={{ zIndex: 1300 }}
+					>
+						{({ TransitionProps }) => (
+							<Grow {...TransitionProps}>
+								<Paper
+									className={classes.datePopover}
+									style={{
+										width: this.state.dateAnchorEl
+											? this.state.dateAnchorEl.clientWidth
+											: undefined
+									}}
+								>
+									<ClickAwayListener onClickAway={this.handleDateRangeClose}>
+										<div>
+											<div className={classes.datePopoverRow}>
+												<label className={classes.dateLabel}>From</label>
+												<DatePicker
+													selected={this.state.from}
+													onChange={this.handleFromDateChange}
+													selectsStart
+													startDate={this.state.from}
+													endDate={this.state.to}
+													dateFormat="dd/MM/yyyy"
+													placeholderText="From Date"
+													inline
+												/>
+											</div>
+											<div className={classes.datePopoverRow}>
+												<label className={classes.dateLabel}>To</label>
+												<DatePicker
+													selected={this.state.to}
+													onChange={this.handleToDateChange}
+													selectsEnd
+													startDate={this.state.from}
+													endDate={this.state.to}
+													minDate={this.state.from}
+													dateFormat="dd/MM/yyyy"
+													placeholderText="To Date"
+													inline
+												/>
+											</div>
+											{this.state.err && (
+												<div style={{ color: 'red', fontSize: 12, marginBottom: 8 }}>
+													Invalid date range
+												</div>
+											)}
+											<div className={classes.datePopoverActions}>
+												<button
+													type="button"
+													onClick={this.handleDateRangeClose}
+													style={{
+														padding: '8px 16px',
+														borderRadius: 4,
+														border: '1px solid #ddd',
+														background: 'white',
+														cursor: 'pointer'
+													}}
+												>
+													Close
+												</button>
+											</div>
+										</div>
+									</ClickAwayListener>
+								</Paper>
+							</Grow>
+						)}
+					</Popper>
+					<div
+						className={`${classes.toolbarCard} ${classes.orgCard}`}
+						onClick={this.handleOrgTriggerClick}
+					>
+						<div className={classes.orgCardContent}>
+							<span className={classes.orgValue}>
+								{this.handleCustomRender(this.state.orgs, this.state.options)}
+							</span>
+							<ExpandMoreIcon className={classes.chevronIcon} />
+						</div>
+					</div>
+					<Popper
+						open={Boolean(this.state.orgAnchorEl)}
+						anchorEl={this.state.orgAnchorEl}
+						placement="bottom-start"
+						transition
+						disablePortal={false}
+						style={{ zIndex: 1300 }}
+					>
+						{({ TransitionProps }) => (
+							<Grow {...TransitionProps}>
+								<Paper className={classes.orgMenu}>
+									<ClickAwayListener onClickAway={this.handleOrgMenuClose}>
+										<List
+											component="nav"
+											aria-labelledby="org-selector-button"
+											style={{ padding: 0, minWidth: 200, maxHeight: 300, overflow: 'auto' }}
+										>
+											{this.state.options.map(option => (
+												<ListItem
+													key={option.value}
+													button
+													onClick={() => this.handleOrgToggle(option.value)}
+													className={classes.orgMenuItem}
+													disableRipple
+												>
+													<ListItemIcon style={{ minWidth: 40 }}>
+														<Checkbox
+															checked={this.state.orgs.includes(option.value)}
+															style={{
+																padding: 0,
+																color: '#3b82f6'
+															}}
+															size="small"
+														/>
+													</ListItemIcon>
+													<ListItemText
+														primary={option.label}
+														primaryTypographyProps={{
+															style: { fontSize: 14 }
+														}}
+													/>
+												</ListItem>
+											))}
+										</List>
+									</ClickAwayListener>
+								</Paper>
+							</Grow>
+						)}
+					</Popper>
+					<button
+						type="button"
+						className={classes.clearFilterButton}
+						onClick={this.handleClearSearch}
+					>
+						Clear filter
+					</button>
+				</div>
 				<ReactTable
-					data={blockList || []}
+					className="network-table"
+					data={filteredBlockList}
 					columns={this.reactTableSetup(classes)}
-					pageSize={
-						this.state.brs
-							? this.props.blockRangeLoaded &&
-							  typeof this.props.blockRangeSearch !== 'string' &&
-							  this.props.blockRangeSearch.length
-							: this.state.rowsPerPage
-					}
-					list
-					filterable
+					defaultPageSize={10}
+					previousText="Previous"
+					nextText="Next"
+					pageText="Page"
+					ofText="of"
+					rowsText="rows"
 					sorted={this.state.sorted}
 					onSortedChange={sorted => {
 						this.setState({ sorted });
 					}}
-					filtered={this.state.filtered}
-					onFilteredChange={filtered => {
-						this.setState({ filtered });
-					}}
 					minRows={0}
-					style={{ height: '750px' }}
-					showPaginationBottom={false}
+					showPagination={filteredBlockList.length > 0}
 				/>
-				{blockList?.length > 0 && (
-					<TablePagination
-						page={this.state.page}
-						sx={tablePaginationStyle}
-						rowsPerPage={this.state.rowsPerPage}
-						labelDisplayedRows={() => `Page ${this.state.page + 1} of ${noOfPages}`}
-						rowsPerPageOptions={rowsPerPageOptions}
-						onRowsPerPageChange={this.handleRowsChange}
-						onPageChange={this.handlePageChange}
-						backIconButtonProps={{
-							disabled: this.state.page === 0
-						}}
-						nextIconButtonProps={{
-							disabled: this.state.page + 1 === noOfPages
-						}}
-						className={classes.tablePagination}
-						labelRowsPerPage={'Items per page'}
-					/>
-				)}
 
 				<Dialog
 					open={dialogOpen}
 					onClose={this.handleDialogClose}
-					fullWidth
-					maxWidth="md"
+					fullWidth={false}
+					maxWidth={false}
+					PaperProps={{
+						style: {
+							backgroundColor: 'transparent',
+							boxShadow: 'none',
+							borderRadius: 8
+						}
+					}}
 				>
-					<TransactionView
-						transaction={this.state.brs ? txnList : transaction}
+					<TransactionDetails
+						transaction={transaction}
 						onClose={this.handleDialogClose}
 					/>
 				</Dialog>
@@ -851,12 +1079,37 @@ export class Blocks extends Component {
 				<Dialog
 					open={dialogOpenBlockHash}
 					onClose={this.handleDialogCloseBlockHash}
-					fullWidth
-					maxWidth="md"
+					maxWidth={false}
+					PaperProps={{
+						style: {
+							backgroundColor: 'transparent',
+							boxShadow: 'none',
+							borderRadius: 8
+						}
+					}}
 				>
-					<BlockView
-						blockHash={blockHash}
+					<BlockDetails
+						block={blockHash}
 						onClose={this.handleDialogCloseBlockHash}
+					/>
+				</Dialog>
+
+				<Dialog
+					open={this.state.dialogOpenBlockTransactions}
+					onClose={this.handleDialogCloseBlockTransactions}
+					maxWidth={false}
+					PaperProps={{
+						style: {
+							backgroundColor: 'transparent',
+							boxShadow: 'none',
+							borderRadius: 8
+						}
+					}}
+				>
+					<BlockTransactions
+						block={this.state.selectedBlock}
+						onClose={this.handleDialogCloseBlockTransactions}
+						onViewTransaction={this.handleDialogOpen}
 					/>
 				</Dialog>
 			</div>

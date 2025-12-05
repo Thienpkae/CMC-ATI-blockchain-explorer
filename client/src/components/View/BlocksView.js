@@ -12,7 +12,7 @@ import {
   getTransactionType,
   transactionType,
   txnListType,
-	getTxnListType
+  getTxnListType
 } from '../types';
 
 export const BlocksView = ({
@@ -23,30 +23,36 @@ export const BlocksView = ({
   blockListSearch,
   getBlockListSearch,
   transactionByOrg,
-	getBlockRangeSearch,
-	blockRangeLoaded,
-	blockListSearchTotalPages,
-	blockListSearchPageParam,
-	blockListSearchQuery,
-	getTxnList,
-	txnList
+  getBlockRangeSearch,
+  blockRangeLoaded,
+  blockListSearchTotalPages,
+  blockListSearchPageParam,
+  blockListSearchQuery,
+  getTxnList,
+  txnList,
+  getBlockSearch,
+  blockSearch,
+  getBlockHash
 }) => (
   <View>
     <Blocks
       currentChannel={currentChannel}
       transaction={transaction}
       getTransaction={getTransaction}
-			getTxnList={getTxnList}
-			txnList={txnList}
+      getTxnList={getTxnList}
+      txnList={txnList}
       transactionByOrg={transactionByOrg}
       blockListSearch={blockListSearch}
       getBlockListSearch={getBlockListSearch}
       blockRangeSearch={blockRangeSearch}
-			blockRangeLoaded={blockRangeLoaded}
+      blockRangeLoaded={blockRangeLoaded}
       blockListSearchTotalPages={blockListSearchTotalPages}
-			blockListSearchPageParam={blockListSearchPageParam}
-			blockListSearchQuery={blockListSearchQuery}
-			getBlockRangeSearch={getBlockRangeSearch}
+      blockListSearchPageParam={blockListSearchPageParam}
+      blockListSearchQuery={blockListSearchQuery}
+      getBlockRangeSearch={getBlockRangeSearch}
+      getBlockSearch={getBlockSearch}
+      blockSearch={blockSearch}
+      getBlockHash={getBlockHash}
     />
   </View>
 );
@@ -57,8 +63,8 @@ BlocksView.propTypes = {
   currentChannel: currentChannelType.isRequired,
   getTransaction: getTransactionType.isRequired,
   transaction: transactionType,
-	txnList: txnListType,
-	getTxnList: getTxnListType
+  txnList: txnListType,
+  getTxnList: getTxnListType
 };
 
 BlocksView.defaultProps = {
